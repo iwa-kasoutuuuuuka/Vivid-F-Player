@@ -1,0 +1,66 @@
+[
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_fragment_file_list.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\fragment_file_list.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/drawable_ic_settings.png.flat",
+        "source": "com.example.videoplayer.app-main-44:/drawable/ic_settings.png"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/drawable_ic_back.png.flat",
+        "source": "com.example.videoplayer.app-main-44:/drawable/ic_back.png"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/layout_item_video_file.xml.flat",
+        "source": "com.example.videoplayer.app-main-44:/layout/item_video_file.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_dialog_settings.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\dialog_settings.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/layout_item_folder.xml.flat",
+        "source": "com.example.videoplayer.app-main-44:/layout/item_folder.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_fragment_folder_selection.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\fragment_folder_selection.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_item_video_file.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\item_video_file.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/drawable_ic_folder.png.flat",
+        "source": "com.example.videoplayer.app-main-44:/drawable/ic_folder.png"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_fragment_folder_list.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\fragment_folder_list.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_item_folder.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\item_folder.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/drawable_ic_video.png.flat",
+        "source": "com.example.videoplayer.app-main-44:/drawable/ic_video.png"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-merged_res-42:\\layout_activity_player.xml.flat",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\activity_player.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/layout_fragment_file_list.xml.flat",
+        "source": "com.example.videoplayer.app-main-44:/layout/fragment_file_list.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-merged_res-42:/mipmap-xhdpi_ic_launcher.png.flat",
+        "source": "com.example.videoplayer.app-main-44:/mipmap-xhdpi/ic_launcher.png"
+    }
+]

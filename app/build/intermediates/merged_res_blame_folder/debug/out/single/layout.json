@@ -1,0 +1,46 @@
+[
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/item_video_file.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/item_video_file.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\activity_player.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\activity_player.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\dialog_settings.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\dialog_settings.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\fragment_file_list.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\fragment_file_list.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\item_video_file.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\item_video_file.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/item_folder.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/item_folder.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\activity_main.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\fragment_folder_selection.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\fragment_folder_selection.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/fragment_file_list.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/fragment_file_list.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\fragment_folder_list.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\fragment_folder_list.xml"
+    },
+    {
+        "merged": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-mergeDebugResources-41:\\layout\\item_folder.xml",
+        "source": "C:\\Users\\AAA\\.gradle\\daemon\\8.5\\com.example.videoplayer.app-main-44:\\layout\\item_folder.xml"
+    }
+]
