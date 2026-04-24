@@ -40,7 +40,12 @@ class FileListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val folderUri = arguments?.getParcelable<Uri>("folder_uri") ?: return
+        val folderUri = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelable("folder_uri", Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            arguments?.getParcelable<Uri>("folder_uri")
+        } ?: return
         viewModel.setFolder(folderUri)
 
         adapter = FileListAdapter { videoFile ->
