@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.videoplayer.ui.main.FileListFragment
 import com.example.videoplayer.ui.main.FolderListFragment
 import com.example.videoplayer.ui.main.FolderSelectionFragment
+import androidx.activity.result.contract.ActivityResultContracts
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -23,6 +24,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 通知権限の要求 (Android 13以上) / Request notification permission (Android 13+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val requestPermissionLauncher = registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                if (!isGranted) {
+                    android.widget.Toast.makeText(this, getString(R.string.no_notification_permission), android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+            if (androidx.core.content.ContextCompat.checkSelfPermission(
+                    this, android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
 
         lifecycleScope.launch {
             viewModel.folders.collect { folders ->
