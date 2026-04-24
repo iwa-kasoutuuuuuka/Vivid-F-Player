@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="glass_black">#AA000000</color>
+    <color name="glass_white">#33FFFFFF</color>
+    <color name="vivid_blue">#2196F3</color>
+    <color name="vivid_gradient_end">#00838F</color>
+    <color name="vivid_gradient_start">#6A1B9A</color>
+    <color name="vivid_pink">#E91E63</color>
+    <color name="vivid_purple">#9C27B0</color>
+    <string name="app_name">Vivid F Player</string>
+    <style name="Theme.VideoPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/vivid_purple</item>
+        <item name="android:statusBarColor">@color/vivid_gradient_start</item>
+    </style>
+    <style name="Theme.VideoPlayer.FullScreen" parent="Theme.VideoPlayer">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

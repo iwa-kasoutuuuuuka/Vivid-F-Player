@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/item_video_file.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/item_video_file.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/dialog_settings.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/dialog_settings.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/item_folder.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/item_folder.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/activity_main.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/fragment_file_list.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/fragment_file_list.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/fragment_folder_list.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/fragment_folder_list.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/fragment_folder_selection.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/fragment_folder_selection.xml"
+    },
+    {
+        "merged": "com.example.videoplayer.app-mergeDebugResources-41:/layout/activity_player.xml",
+        "source": "com.example.videoplayer.app-main-44:/layout/activity_player.xml"
+    }
+]

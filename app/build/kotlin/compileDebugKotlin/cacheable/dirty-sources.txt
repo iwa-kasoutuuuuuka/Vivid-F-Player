@@ -1,0 +1,16 @@
+F:\app\Android\app\src\main\java\com\example\videoplayer\player\PlayerManager.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\data\model\VideoFile.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\main\SettingsBottomSheet.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\main\FolderListAdapter.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\main\FolderSelectionFragment.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\util\NaturalOrderComparator.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\util\Quadruple.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\main\MainViewModel.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\main\FileListAdapter.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\main\FolderListFragment.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\player\PlayerActivity.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\player\PlaybackService.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\MainActivity.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\data\manager\ResumeManager.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\ui\main\FileListFragment.kt
+F:\app\Android\app\src\main\java\com\example\videoplayer\data\repository\FileRepository.kt
