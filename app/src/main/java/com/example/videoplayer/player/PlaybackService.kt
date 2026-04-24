@@ -21,8 +21,10 @@ class PlaybackService : MediaSessionService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        if (!wakeLock?.isHeld!!) {
-            wakeLock?.acquire()
+        wakeLock?.let {
+            if (!it.isHeld) {
+                it.acquire()
+            }
         }
         return START_STICKY
     }
