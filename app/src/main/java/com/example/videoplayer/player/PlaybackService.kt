@@ -7,20 +7,29 @@ import androidx.media3.exoplayer.ExoPlayer
 
 class PlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
+    private var wakeLock: android.os.PowerManager.WakeLock? = null
 
     override fun onCreate() {
         super.onCreate()
-        val player = ExoPlayer.Builder(this).build()
-        mediaSession = MediaSession.Builder(this, player).build()
+        val powerManager = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+        wakeLock = powerManager.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "VividFPlayer:PlaybackWakeLock")
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
+        return PlayerHolder.getMediaSession(this)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
+        if (!wakeLock?.isHeld!!) {
+            wakeLock?.acquire()
+        }
+        return START_STICKY
+    }
 
     override fun onDestroy() {
-        mediaSession?.run {
-            player.release()
-            release()
-            mediaSession = null
+        if (wakeLock?.isHeld == true) {
+            wakeLock?.release()
         }
         super.onDestroy()
     }
