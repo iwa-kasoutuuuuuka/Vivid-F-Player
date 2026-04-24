@@ -8,13 +8,17 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.videoplayer.data.manager.ResumeManager
 import android.content.Intent
-import android.net.Uri
+import com.example.videoplayer.R
 import com.example.videoplayer.ui.MainActivity
+import com.example.videoplayer.databinding.FragmentFolderListBinding
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class FolderListFragment : Fragment() {
     private var _binding: FragmentFolderListBinding? = null
@@ -35,14 +39,23 @@ class FolderListFragment : Fragment() {
         
         val adapter = FolderListAdapter(
             onClick = { (activity as? MainActivity)?.navigateToFileList(it) },
-            onDelete = { viewModel.removeFolder(it) }
+            onDelete = { uri ->
+                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setMessage(getString(R.string.delete_folder_confirm))
+                    .setPositiveButton("OK") { _, _ -> viewModel.removeFolder(uri) }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
         )
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
 
-        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
-            viewModel.folders.collect { folders ->
-                adapter.submitList(folders)
+        // フォルダ一覧の監視 / Monitor folder list
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.folders.collect { folders ->
+                    adapter.submitList(folders)
+                }
             }
         }
         
