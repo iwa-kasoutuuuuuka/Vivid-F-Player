@@ -87,7 +87,8 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
 ## 🔄 更新履歴 / Update History
 
 ### v1.2.4 (2026-04-24)
-- **画面消灯時再生の強化 / Enhanced Screen-Off Playback**:
+- **画面消灯・減光の防止強化 / Enhanced Prevention of Screen Timeout & Dimming**:
+  - `FLAG_KEEP_SCREEN_ON` をWindowに追加し、Xiaomi端末等での自動減光を抑制。 / Added `FLAG_KEEP_SCREEN_ON` to the Window to prevent automatic dimming on Xiaomi devices.
   - CPU WakeLockの実装により、スリープによる中断を防止。 / Implemented CPU WakeLock to prevent interruption by system sleep.
   - リピート再生・シャッフル再生機能を追加。 / Added Repeat and Shuffle playback modes.
   - おやすみタイマー機能を追加。 / Added Sleep Timer functionality.
