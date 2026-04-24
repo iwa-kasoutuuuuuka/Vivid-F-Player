@@ -8,7 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.videoplayer.data.manager.ResumeManager
 import com.example.videoplayer.databinding.FragmentFileListBinding
@@ -64,9 +66,12 @@ class FileListFragment : Fragment() {
             SettingsBottomSheet().show(parentFragmentManager, "settings")
         }
 
+        // 動画一覧の監視 / Monitor video files
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.videoFiles.collectLatest { files ->
-                adapter.submitList(files)
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.videoFiles.collectLatest { files ->
+                    adapter.submitList(files)
+                }
             }
         }
     }
