@@ -68,6 +68,21 @@ class PlayerActivity : AppCompatActivity() {
                 isBackgroundPlayEnabled = enabled
             }
         }
+        lifecycleScope.launch {
+            viewModel.repeatMode.collect { mode ->
+                playerManager.player.repeatMode = mode
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.shuffleModeEnabled.collect { enabled ->
+                playerManager.player.shuffleModeEnabled = enabled
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.stopPlaybackEvent.collect {
+                finish()
+            }
+        }
 
         val videoUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("video_uri", Uri::class.java)
