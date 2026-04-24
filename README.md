@@ -90,6 +90,12 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
 
 ## 🔄 更新履歴 / Update History
 
+### v1.2.6 (2026-04-24)
+- **安定性と互換性の向上 / Improved Stability & Compatibility**:
+  - `PlaybackService` での `WakeLock` 取得時の潜在的な `NullPointerException` を修正。 / Fixed a potential `NullPointerException` when acquiring `WakeLock` in `PlaybackService`.
+  - Android 13 (Tiramisu) 以降での `getParcelable` 使用を最新のAPIに準拠させ、クラッシュを防止。 / Refactored `getParcelable` usage to comply with modern APIs on Android 13+, preventing crashes.
+  - 設定画面に「バッテリー最適化の解除」ボタンを直接配置し、ユーザーが設定画面へ迷わずアクセスできるように改善。 / Added a direct "Disable Battery Optimization" button in the settings bottom sheet.
+
 ### v1.2.5
 - Xiaomi端末での画面消灯・スリープ対策を強化 (Enforced screen timeout prevention for Xiaomi devices)
 - `FLAG_KEEP_SCREEN_ON`をWindowレベルで適用し、再生中の画面消灯を抑制
