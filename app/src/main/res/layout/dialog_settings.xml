@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="設定"
+        android:text="@string/settings_title"
         android:textColor="#FFFFFF"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -18,7 +18,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="再生速度"
+        android:text="@string/playback_speed"
         android:textColor="#BBBBBB"
         android:layout_marginBottom="8dp" />
 
@@ -44,7 +44,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="バックグラウンド再生"
+            android:text="@string/background_play"
             android:textColor="#FFFFFF"
             android:textSize="16sp" />
         <androidx.appcompat.widget.SwitchCompat
@@ -58,14 +58,14 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="リピート"
+        android:text="@string/repeat_mode"
         android:textColor="#BBBBBB"
         android:layout_marginBottom="8dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="登録済みフォルダの管理"
+        android:text="@string/manage_folders"
         android:textColor="#BBBBBB"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="8dp" />
@@ -74,6 +74,22 @@
         android:id="@+id/rv_folders"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="200dp" />
+        android:maxHeight="160dp" />
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
+
+    <TextView
+        android:id="@+id/btn_troubleshooting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/bg_troubleshooting_label"
+        android:textColor="#4CAF50"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground"
+        android:drawableStart="@android:drawable/ic_menu_help"
+        android:drawablePadding="8dp" />
 
 </LinearLayout>
