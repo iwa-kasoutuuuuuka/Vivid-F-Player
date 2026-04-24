@@ -3,6 +3,10 @@
 モダンなデザインと使いやすさを追求した、Android用ビデオプレイヤーアプリです。
 A video player app for Android, designed for modern aesthetics and ease of use.
 
+## バージョン情報 (Version Info)
+- **Current Version**: v1.2.5
+- **Latest Build**: `app-debug.apk` (Check Releases)
+
 Androidの端末内(SDカード含む)のフォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
 Simply configure folders within your Android device (including SD cards) and play video files continuously in filename order.
 
@@ -85,6 +89,11 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.5
+- Xiaomi端末での画面消灯・スリープ対策を強化 (Enforced screen timeout prevention for Xiaomi devices)
+- `FLAG_KEEP_SCREEN_ON`をWindowレベルで適用し、再生中の画面消灯を抑制
+- ドキュメントの更新（ビルド手順とトラブルシューティング）
 
 ### v1.2.4 (2026-04-24)
 - **画面消灯・減光の防止強化 / Enhanced Prevention of Screen Timeout & Dimming**:
