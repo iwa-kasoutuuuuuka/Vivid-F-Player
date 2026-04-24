@@ -15,6 +15,7 @@ class FolderListAdapter(
 
     class ViewHolder(private val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(uri: Uri, onClick: (Uri) -> Unit, onDelete: (Uri) -> Unit) {
+            // フォルダ名の表示 / Display folder name
             binding.tvFolderName.text = uri.lastPathSegment ?: uri.toString()
             binding.root.setOnClickListener { onClick(uri) }
             binding.btnDelete.setOnClickListener { onDelete(uri) }
