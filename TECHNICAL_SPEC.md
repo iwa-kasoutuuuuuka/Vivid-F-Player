@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.5
+# 技術仕様書 (Technical Specifications) - v1.2.6
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
