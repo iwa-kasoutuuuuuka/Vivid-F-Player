@@ -1,43 +1,54 @@
-# Vivid F Player - 技術仕様書 (Technical Specifications)
+# 技術仕様書 / Technical Specification
 
-## 1. 概要
-本アプリケーションは、Android Media3 (ExoPlayer) をベースとした高性能ビデオプレイヤーです。ローカルストレージのフォルダ単位での管理と、効率的な視聴体験を提供することを目的としています。
+## 1. アプリ概要 / App Overview
+Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
+Vivid F Player is an Android video player specialized for watching videos in off-grid environments like campsites.
 
-## 2. 技術スタック
-- **言語**: Kotlin
-- **最小SDK**: API 24 (Android 7.0)
-- **ターゲットSDK**: API 34 (Android 14)
-- **主要ライブラリ**:
-  - `androidx.media3:media3-exoplayer`: 再生エンジン
-  - `androidx.media3:media3-ui`: プレイヤーUIコンポーネント
-  - `androidx.media3:media3-session`: バックグラウンド再生およびメディアセッション管理
-  - `androidx.lifecycle:lifecycle-viewmodel-ktx`: アーキテクチャコンポーネント
-  - `androidx.documentfile:documentfile`: ストレージアクセス (Scoped Storage 対応)
+## 2. 主要技術スタック / Key Tech Stack
+- **Language**: Kotlin
+- **Media Engine**: ExoPlayer (Media3)
+- **UI Architecture**: MVVM (ViewModel, LiveData/Flow)
+- **View Binding**: DataBinding / ViewBinding
+- **Service**: Foreground Service for Background Playback
 
-## 3. 主要コンポーネントの設計
+## 3. バックグラウンド再生の安定化実装 / Background Playback Stability Implementation
 
-### 3.1 フォルダ管理
-`FileRepository` は `DocumentFile` API を使用して、ユーザーが選択したフォルダツリー内の動画ファイルをスキャンします。
-`Scoped Storage` の制限に対応するため、`Intent.ACTION_OPEN_DOCUMENT_TREE` を通じて持続的なパーミッションを取得します。
+### 3.1 CPUスリープ防止 / CPU Sleep Prevention
+`PlayerHolder.kt` にて、再生中にCPUがスリープしないよう `WAKE_MODE_LOCAL` を設定しています。
+In `PlayerHolder.kt`, `WAKE_MODE_LOCAL` is set to prevent the CPU from sleeping during playback.
+```kotlin
+setWakeMode(C.WAKE_MODE_LOCAL)
+```
 
-### 3.2 再生制御 (`PlayerManager`)
-ExoPlayer インスタンスを一元管理します。以下の設定を適用しています：
-- `setPlaybackSpeed`: 再生速度の動的変更
-- `MediaItem`: URIベースのメディア読み込み
+### 3.2 サービス生存性の向上 / Improved Service Persistence
+`MediaSession` に `SessionActivity` を紐付けることで、OSがサービスを重要なものとして認識し、メモリ不足時に終了されにくくしています。
+By linking `SessionActivity` to `MediaSession`, the OS recognizes the service as important, making it less likely to be terminated during low memory.
+```kotlin
+val sessionIntent = Intent(context, PlayerActivity::class.java)
+val pendingIntent = PendingIntent.getActivity(...)
+mediaSession = MediaSession.Builder(context, player)
+    .setSessionActivity(pendingIntent)
+    .build()
+```
 
-### 3.3 連続再生とソート
-`NaturalOrderComparator` により、ファイル名に含まれる数字を数値として比較します。
-例：`episode_2.mp4` < `episode_10.mp4`
+### 3.3 画面消灯の制御 / Screen Timeout Control
+`PlayerActivity.kt` にて、再生中はシステムによる自動消灯を無効化しています。
+In `PlayerActivity.kt`, automatic screen timeout by the system is disabled during playback.
+```kotlin
+binding.playerView.keepScreenOn = true
+```
 
-### 3.4 状態管理
-`ResumeManager` は `SharedPreferences` を使用して以下の情報を永続化します：
-- 各フォルダの最後に再生したファイル名
-- 各ファイルの最終再生位置 (ミリ秒)
+## 4. 端末側の推奨設定 / Recommended Device Settings
 
-## 4. ジェスチャー・インターフェース
-`GestureDetector` を使用して、プレイヤー画面上のタッチ操作を解析します。
-- `onScroll`: スワイプの方向と移動距離に基づいて、音量、明るさ、または再生位置を調整します。
-- `onSingleTapConfirmed`: オーバーレイコントロール（戻るボタン、シークバー等）の表示/非表示を切り替えます。
+OSレベルでのアプリ終了を防ぐため、以下の設定を推奨します。
+The following settings are recommended to prevent the OS from killing the app.
 
-## 5. バックグラウンド再生
-`PlaybackService` (MediaSessionService) により、アプリがバックグラウンドに移動しても音声の再生を継続可能です。システム通知領域からのコントロールもサポートしています。
+1. **バッテリー最適化の解除 / Disable Battery Optimization**:
+   「制限なし」または「最適化しない」に設定。 / Set to "Unrestricted" or "Don't optimize".
+2. **バックグラウンド動作の許可 / Allow Background Activity**:
+   メーカー独自の省電力機能（STAMINAモード等）の対象外に設定。 / Exclude from manufacturer-specific power-saving features.
+
+## 5. UI/UX デザイン / UI/UX Design
+- **Color Theme**: Deep Black (#000000) for Player background.
+- **Visual Effects**: Glassmorphism for Bottom Sheets.
+- **Gestures**: Horizontal swipe for seeking, Vertical swipe for volume/brightness.
