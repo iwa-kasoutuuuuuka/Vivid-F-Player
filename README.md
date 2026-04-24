@@ -86,6 +86,12 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
 
 ## 🔄 更新履歴 / Update History
 
+### v1.2.4 (2026-04-24)
+- **画面消灯時再生の強化 / Enhanced Screen-Off Playback**:
+  - CPU WakeLockの実装により、スリープによる中断を防止。 / Implemented CPU WakeLock to prevent interruption by system sleep.
+  - リピート再生・シャッフル再生機能を追加。 / Added Repeat and Shuffle playback modes.
+  - おやすみタイマー機能を追加。 / Added Sleep Timer functionality.
+
 ### v1.2.3 (2026-04-24)
 - **再生継続の改善 / Improved Continuity**:
   - 再生中に画面が自動消灯しないよう `keepScreenOn` を有効化。 / Enabled `keepScreenOn` to prevent automatic screen timeout during playback.
