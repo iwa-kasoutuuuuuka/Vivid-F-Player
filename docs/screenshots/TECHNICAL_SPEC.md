@@ -47,6 +47,8 @@ The following implementations have been applied for background stability:
 - [x] **PowerManager.WakeLock**: `PARTIAL_WAKE_LOCK` を適切に取得/解放。 / Properly acquire/release `PARTIAL_WAKE_LOCK`.
 - [x] **ExoPlayer Audio Focus**: `AudioAttributes` を設定し、他アプリとの音声音制御を最適化。 / Set `AudioAttributes` to optimize audio control with other apps.
 - [x] **KeepScreenOn**: `android:keepScreenOn` による動画再生中の画面維持。 / Maintain screen during video playback via `keepScreenOn`.
+- [x] **Repeat & Shuffle Modes**: ViewModel経由での再生モード制御。 / Playback mode control via ViewModel.
+- [x] **Sleep Timer**: 指定時間経過後の自動停止機能。 / Automatic stop functionality after a specified duration.
 
 ## 4. 端末側の推奨設定 / Recommended Device Settings
 
@@ -58,7 +60,14 @@ The following settings are recommended to prevent the OS from killing the app.
 2. **バックグラウンド動作の許可 / Allow Background Activity**:
    メーカー独自の省電力機能（STAMINAモード等）の対象外に設定。 / Exclude from manufacturer-specific power-saving features.
 
-## 5. UI/UX デザイン / UI/UX Design
 - **Color Theme**: Deep Black (#000000) for Player background.
 - **Visual Effects**: Glassmorphism for Bottom Sheets.
 - **Gestures**: Horizontal swipe for seeking, Vertical swipe for volume/brightness.
+
+## 6. 更新履歴 / Update History
+
+### v1.2.4 (2026-04-24)
+- **Xiaomi/バックグラウンド強化 / Xiaomi & Background Enhancement**:
+  - バッテリー制限解除への直接リンクを追加。 / Added direct link to disable battery restrictions.
+  - CPU WakeLock により画面オフ時の停止を防止。 / Prevented stopping during screen-off via CPU WakeLock.
+  - リピート、シャッフル、おやすみタイマー機能を追加。 / Added Repeat, Shuffle, and Sleep Timer.
