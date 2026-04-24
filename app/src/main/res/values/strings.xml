@@ -1,4 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Vivid F Player</string>
+    <string name="settings_title">設定 / Settings</string>
+    <string name="playback_speed">再生速度 / Playback Speed</string>
+    <string name="background_play">バックグラウンド再生 / Background Playback</string>
+    <string name="repeat_mode">リピートモード / Repeat Mode</string>
+    <string name="shuffle_play">シャッフル再生 / Shuffle Play</string>
+    <string name="manage_folders">登録済みフォルダの管理 / Manage Folders</string>
+    <string name="playback_error">再生エラー: ファイルを再生できません / Playback Error: Cannot play file</string>
+    <string name="last_file">最後のファイルです / Last file</string>
+    <string name="first_file">最初のファイルです / First file</string>
+    <string name="no_notification_permission">通知権限がないため、バックグラウンド再生の制御が表示されません / Notification permission not granted; background playback controls will not be visible.</string>
+    <string name="delete_folder_confirm">このフォルダを解除しますか？ / Unregister this folder?</string>
+    <string name="bg_troubleshooting_title">バックグラウンド再生の不具合解決 / Background Playback Troubleshooting</string>
+    <string name="bg_troubleshooting_content">
+Androidのバージョンや端末によっては、バックグラウンド再生が停止する場合があります。以下の設定を確認してください：\n\n
+1. **バッテリー最適化の解除 (最重要)**: 端末の 設定 > アプリ > Vivid F Player > バッテリー にて、「制限なし」または「最適化しない」を選択してください。\n\n
+2. **自動起動の許可**: 設定 > アプリ > 権限 > 自動起動 にて、本アプリをONにしてください。\n\n
+3. **Xiaomi特有の設定**: 最近のアプリ画面でアプリを下にスワイプし、鍵アイコンをタップして「ロック」してください。また、開発者オプションで「MIUI最適化」をOFFにすると改善する場合があります。\n\n
+--- \n
+Depending on the Android version or device, background playback may stop. Please check the following settings:\n\n
+1. **Disable Battery Optimization (Crucial)**: Go to Settings > Apps > Vivid F Player > Battery and select "Unrestricted" or "Don't optimize".\n\n
+2. **Allow Autostart**: Go to Settings > Apps > Permissions > Autostart and turn it ON for this app.\n\n
+3. **Xiaomi Specific**: Swipe down on the app in the Recents screen and tap the lock icon. Also, disabling "MIUI Optimization" in Developer Options may help.
+    </string>
+    <string name="bg_troubleshooting_label">バックグラウンド再生の対策 / Background Playback Fix</string>
 </resources>
