@@ -10,17 +10,12 @@ import androidx.media3.session.MediaSession
  * ExoPlayerのインスタンスを管理し、再生制御を行います。
  */
 class PlayerManager(context: Context) {
-    val player: ExoPlayer = ExoPlayer.Builder(context).build()
+    val player: ExoPlayer = PlayerHolder.getPlayer(context)
     var mediaSession: MediaSession? = null
     var onError: ((Exception) -> Unit)? = null
 
     init {
-        player.addListener(object : Player.Listener {
-            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-                onError?.invoke(error)
-            }
-        })
-        mediaSession = MediaSession.Builder(context, player).build()
+        mediaSession = PlayerHolder.getMediaSession(context)
     }
 
     var speed: Float = 1.0f
@@ -38,8 +33,7 @@ class PlayerManager(context: Context) {
     }
 
     fun release() {
-        mediaSession?.release()
-        mediaSession = null
-        player.release()
+        // 全体のプレイヤー/セッションを解放 / Release global player/session
+        PlayerHolder.release()
     }
 }
