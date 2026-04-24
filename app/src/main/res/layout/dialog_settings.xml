@@ -55,12 +55,42 @@
 
     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#333333" android:layout_marginVertical="16dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/repeat_mode"
-        android:textColor="#BBBBBB"
-        android:layout_marginBottom="8dp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/repeat_mode"
+            android:textColor="#BBBBBB"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/rg_repeat_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OFF" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ONE" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ALL" android:textColor="#FFFFFF" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/shuffle_play"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/sw_shuffle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
     <TextView
         android:layout_width="wrap_content"
@@ -78,18 +108,59 @@
 
     <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
 
-    <TextView
-        android:id="@+id/btn_troubleshooting"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/bg_troubleshooting_label"
-        android:textColor="#4CAF50"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:padding="12dp"
-        android:background="?attr/selectableItemBackground"
-        android:drawableStart="@android:drawable/ic_menu_help"
-        android:drawablePadding="8dp" />
+        <TextView
+            android:id="@+id/btn_troubleshooting"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/bg_troubleshooting_label"
+            android:textColor="#4CAF50"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@android:drawable/ic_menu_help"
+            android:drawablePadding="8dp" />
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
+
+        <LinearLayout
+            android:id="@+id/btn_sleep_timer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackground">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="おやすみタイマー / Sleep Timer"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+            <TextView
+                android:id="@+id/tv_sleep_timer_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OFF"
+                android:textColor="#BBBBBB" />
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
+
+        <TextView
+            android:id="@+id/btn_battery_optimization"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="バッテリー制限の解除 / Disable Battery Restrictions"
+            android:textColor="#FF9800"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="12dp"
+            android:background="?attr/selectableItemBackground"
+            android:drawableStart="@android:drawable/ic_lock_idle_low_battery"
+            android:drawablePadding="8dp" />
 
 </LinearLayout>
