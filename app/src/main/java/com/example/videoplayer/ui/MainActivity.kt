@@ -74,9 +74,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onFolderSelected(uri: Uri) {
-        contentResolver.takePersistableUriPermission(uri, 
-            android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or 
-            android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        if (uri.scheme == "content") {
+            contentResolver.takePersistableUriPermission(uri, 
+                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or 
+                android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        }
         viewModel.addFolder(uri)
     }
 }
