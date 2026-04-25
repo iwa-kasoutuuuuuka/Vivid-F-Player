@@ -64,6 +64,40 @@ class FolderListFragment : Fragment() {
         binding.btnAddFolder.setOnClickListener {
             selectFolderLauncher.launch(null)
         }
+
+        binding.btnAddSmbFolder.setOnClickListener {
+            showAddSmbDialog()
+        }
+    }
+
+    private fun showAddSmbDialog() {
+        val dialogBinding = com.example.videoplayer.databinding.DialogAddSmbBinding.inflate(layoutInflater)
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext(), R.style.Theme_VideoPlayer_Dialog)
+            .setView(dialogBinding.root)
+            .create()
+
+        dialogBinding.btnConnect.setOnClickListener {
+            val server = dialogBinding.etServer.text.toString().trim()
+            val share = dialogBinding.etShare.text.toString().trim()
+            val user = dialogBinding.etUsername.text.toString().trim()
+            val pass = dialogBinding.etPassword.text.toString().trim()
+
+            if (server.isNotEmpty() && share.isNotEmpty()) {
+                // smb://[user:password@]host/share/
+                val userInfo = if (user.isNotEmpty()) {
+                    if (pass.isNotEmpty()) "$user:$pass@" else "$user@"
+                } else ""
+                
+                val smbUrl = "smb://$userInfo$server/$share/"
+                viewModel.addSmbFolder(smbUrl)
+                dialog.dismiss()
+            } else {
+                android.widget.Toast.makeText(requireContext(), R.string.invalid_smb_path, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        dialog.show()
+    }
     }
 
     private fun setupQuickResume() {
