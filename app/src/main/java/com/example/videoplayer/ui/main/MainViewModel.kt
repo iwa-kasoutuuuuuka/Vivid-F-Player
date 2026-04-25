@@ -5,15 +5,16 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.videoplayer.data.model.VideoFile
-import com.example.videoplayer.data.repository.FileRepository
 import androidx.media3.common.Player
+import com.example.videoplayer.data.repository.CompositeVideoRepository
+import com.example.videoplayer.data.repository.VideoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = FileRepository(application)
+    private val repository = CompositeVideoRepository(application)
     private val prefs = application.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
     
     private val _stopPlaybackEvent = kotlinx.coroutines.flow.MutableSharedFlow<Unit>()
@@ -57,6 +58,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun addFolder(uri: Uri) {
         val currentSet = prefs.getStringSet("folder_uris", emptySet())?.toMutableSet() ?: mutableSetOf()
         currentSet.add(uri.toString())
+        prefs.edit().putStringSet("folder_uris", currentSet).apply()
+        loadFolders()
+    }
+
+    fun addSmbFolder(url: String) {
+        val currentSet = prefs.getStringSet("folder_uris", emptySet())?.toMutableSet() ?: mutableSetOf()
+        currentSet.add(url)
         prefs.edit().putStringSet("folder_uris", currentSet).apply()
         loadFolders()
     }
