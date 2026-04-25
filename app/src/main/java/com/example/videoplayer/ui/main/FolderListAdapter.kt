@@ -16,7 +16,15 @@ class FolderListAdapter(
     class ViewHolder(private val binding: ItemFolderBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(uri: Uri, onClick: (Uri) -> Unit, onDelete: (Uri) -> Unit) {
             // フォルダ名の表示 / Display folder name
-            binding.tvFolderName.text = uri.lastPathSegment ?: uri.toString()
+            if (uri.scheme == "smb") {
+                binding.ivFolderIcon.setImageResource(com.example.videoplayer.R.drawable.ic_smb)
+                val path = uri.path?.trim('/') ?: ""
+                val host = uri.host ?: ""
+                binding.tvFolderName.text = if (host.isNotEmpty()) "$host/$path" else path
+            } else {
+                binding.ivFolderIcon.setImageResource(com.example.videoplayer.R.drawable.ic_folder)
+                binding.tvFolderName.text = uri.lastPathSegment ?: uri.toString()
+            }
             binding.root.setOnClickListener { onClick(uri) }
             binding.btnDelete.setOnClickListener { onDelete(uri) }
         }
