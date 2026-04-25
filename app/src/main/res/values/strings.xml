@@ -25,4 +25,13 @@ Depending on the Android version or device, background playback may stop. Please
 3. **Xiaomi Specific**: Swipe down on the app in the Recents screen and tap the lock icon. Also, disabling "MIUI Optimization" in Developer Options may help.
     </string>
     <string name="bg_troubleshooting_label">バックグラウンド再生の対策 / Background Playback Fix</string>
+    <string name="add_smb_folder">SMBフォルダを追加</string>
+    <string name="smb_server_address">サーバーアドレス (例: 192.168.1.100)</string>
+    <string name="smb_share_name">共有名 (例: video)</string>
+    <string name="smb_username">ユーザー名 (任意)</string>
+    <string name="smb_password">パスワード (任意)</string>
+    <string name="smb_connect">接続</string>
+    <string name="invalid_smb_path">無効なSMBパスです</string>
+    <string name="hw_optimization">ハードウェア・デコード最適化</string>
+    <string name="hw_optimization_desc">高ビットレート動画の再生を安定化し、省電力化します</string>
 </resources>
