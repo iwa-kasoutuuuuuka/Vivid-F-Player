@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.videoplayer"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.2.5"
+        versionCode = 3
+        versionName = "1.2.6"
     }
 
     buildFeatures {
@@ -45,4 +45,7 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:$media3Version")
     implementation("androidx.media3:media3-ui:$media3Version")
     implementation("androidx.media3:media3-session:$media3Version")
+
+    // SMB Support
+    implementation("com.github.codelibs:jcifs-ng:2.1.31")
 }
