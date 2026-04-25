@@ -6,5 +6,6 @@ data class VideoFile(
     val name: String,
     val uri: Uri,
     val size: Long,
-    val lastModified: Long
+    val lastModified: Long,
+    val isRemote: Boolean = false
 )
