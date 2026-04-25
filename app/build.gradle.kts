@@ -12,7 +12,7 @@ android {
         minSdk = 26
         targetSdk = 34
         versionCode = 3
-        versionName = "1.2.6"
+        versionName = "1.2.7"
     }
 
     buildFeatures {
@@ -47,5 +47,5 @@ dependencies {
     implementation("androidx.media3:media3-session:$media3Version")
 
     // SMB Support
-    implementation("com.github.codelibs:jcifs-ng:2.1.31")
+    implementation("eu.agno3.jcifs:jcifs-ng:2.1.10")
 }
