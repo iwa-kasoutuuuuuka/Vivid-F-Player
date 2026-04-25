@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.5
+- **Current Version**: v1.2.7
 - **Latest Build**: `app-debug.apk` (Check Releases)
 
 Androidの端末内(SDカード含む)のフォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -35,6 +35,7 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 - 🖐️ **ジェスチャーコントロール / Gesture Control**: 明るさ、音量、シークを直感的に操作。 / Intuitively control brightness, volume, and seeking.
 - ⚡ **再生速度変更 / Playback Speed Control**: 0.5xから2.0xまで調整可能。 / Adjustable from 0.5x to 2.0x.
 - 🔖 **レジューム再生 / Resume Playback**: 続きから再生。 / Resume from where you left off.
+- ⏭️ **YouTube風ジェスチャー / YouTube-style Gestures**: 長押しで2倍速、ダブルタップで10秒スキップ。 / Long press for 2x speed, double tap for 10s skip.
 
 ## 📁 フォルダ構成 / Directory Structure
 
@@ -90,11 +91,22 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
 
 ## 🔄 更新履歴 / Update History
 
+### v1.2.7 (2026-04-25)
+- **YouTube風操作の追加 / YouTube-style Gestures**:
+  * 画面長押しで **2.0倍速再生**（指を離すと戻る）。 / Long press for **2.0x playback speed** (restores on release).
+  * 左右ダブルタップで **10秒スキップ** (進む/戻る)。 / Double tap on left/right for **10s skip** (forward/backward).
+  * 視覚的なフィードバック（倍速インジケーター、スキップアイコン）を追加。 / Added visual feedback (speed indicator, skip icons).
+- **SMB 再生ロジックの修正 / SMB Playback Fix**:
+  * `SmbDataSource` の移譲不備を修正し、ストリーミングが途切れる問題を解消。 / Fixed delegation in `SmbDataSource` to resolve streaming issues.
+- **バグ修正 / Bug Fixes**:
+  * `FolderListFragment` の構文エラーを修正。 / Fixed syntax error in `FolderListFragment`.
+  * `PlayerActivity` のリポジトリ参照を最新化。 / Updated repository references in `PlayerActivity`.
+
 ### v1.2.6 (2026-04-24)
-- **安定性と互換性の向上 / Improved Stability & Compatibility**:
-  - `PlaybackService` での `WakeLock` 取得時の潜在的な `NullPointerException` を修正。 / Fixed a potential `NullPointerException` when acquiring `WakeLock` in `PlaybackService`.
-  - Android 13 (Tiramisu) 以降での `getParcelable` 使用を最新のAPIに準拠させ、クラッシュを防止。 / Refactored `getParcelable` usage to comply with modern APIs on Android 13+, preventing crashes.
-  - 設定画面に「バッテリー最適化の解除」ボタンを直接配置し、ユーザーが設定画面へ迷わずアクセスできるように改善。 / Added a direct "Disable Battery Optimization" button in the settings bottom sheet.
+- **SMB対応とハードウェア最適化 / SMB Support & HW Optimization**:
+  * `jcifs-ng` による SMBv2/v3 ストリーミング再生に対応。 / Added SMBv2/v3 streaming support via `jcifs-ng`.
+  * ハードウェアデコーダーを優先し、高ビットレート動画の再生を安定化。 / Prioritized HW decoders for stable high-bitrate playback.
+  * ネットワーク遅延に対応するためバッファサイズを拡張。 / Expanded buffer sizes for network latency.
 
 ### v1.2.5
 - Xiaomi端末での画面消灯・スリープ対策を強化 (Enforced screen timeout prevention for Xiaomi devices)
