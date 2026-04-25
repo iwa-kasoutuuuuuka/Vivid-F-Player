@@ -46,14 +46,37 @@ object PlayerHolder {
             val smbDataSourceFactory = SmbDataSource.Factory()
             
             val dataSourceFactory = androidx.media3.datasource.DataSource.Factory {
-                val dataSource = baseDataSourceFactory.createDataSource()
-                object : androidx.media3.datasource.DataSource by dataSource {
+                object : androidx.media3.datasource.DataSource {
+                    private var activeDataSource: androidx.media3.datasource.DataSource? = null
+                    private val baseDataSource = baseDataSourceFactory.createDataSource()
+                    private val smbDataSource = smbDataSourceFactory.createDataSource()
+
+                    override fun addTransferListener(transferListener: androidx.media3.datasource.TransferListener) {
+                        baseDataSource.addTransferListener(transferListener)
+                        smbDataSource.addTransferListener(transferListener)
+                    }
+
                     override fun open(dataSpec: androidx.media3.datasource.DataSpec): Long {
-                        return if (dataSpec.uri.scheme == "smb") {
-                            smbDataSourceFactory.createDataSource().open(dataSpec)
+                        activeDataSource = if (dataSpec.uri.scheme == "smb") {
+                            smbDataSource
                         } else {
-                            dataSource.open(dataSpec)
+                            baseDataSource
                         }
+                        return activeDataSource!!.open(dataSpec)
+                    }
+
+                    override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                        return activeDataSource?.read(buffer, offset, length) ?: -1
+                    }
+
+                    override fun getUri(): android.net.Uri? = activeDataSource?.getUri()
+
+                    override fun getResponseHeaders(): Map<String, List<String>> = 
+                        activeDataSource?.getResponseHeaders() ?: emptyMap()
+
+                    override fun close() {
+                        activeDataSource?.close()
+                        activeDataSource = null
                     }
                 }
             }
@@ -64,6 +87,8 @@ object PlayerHolder {
                 .setLoadControl(loadControl)
                 .setHandleAudioBecomingNoisy(true)
                 .setWakeMode(C.WAKE_MODE_LOCAL)
+                .setSeekBackIncrementMs(10000)
+                .setSeekForwardIncrementMs(10000)
                 .build()
         }
         return player!!
