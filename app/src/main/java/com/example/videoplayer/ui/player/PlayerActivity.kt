@@ -23,7 +23,8 @@ import androidx.media3.common.Player
 import com.example.videoplayer.R
 import com.example.videoplayer.data.manager.ResumeManager
 import com.example.videoplayer.data.model.VideoFile
-import com.example.videoplayer.data.repository.FileRepository
+import com.example.videoplayer.data.repository.CompositeVideoRepository
+import com.example.videoplayer.data.repository.VideoRepository
 import com.example.videoplayer.databinding.ActivityPlayerBinding
 import com.example.videoplayer.player.PlaybackService
 import com.example.videoplayer.player.PlayerManager
@@ -35,7 +36,7 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPlayerBinding
     private val viewModel: MainViewModel by viewModels()
     private lateinit var playerManager: PlayerManager
-    private lateinit var fileRepository: FileRepository
+    private lateinit var videoRepository: VideoRepository
     private var videoList: List<VideoFile> = emptyList()
     private var currentIndex: Int = -1
     private var folderUri: String? = null
@@ -45,6 +46,8 @@ class PlayerActivity : AppCompatActivity() {
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideRunnable = Runnable { hideControls() }
     private val HIDE_DELAY = 3000L // 3秒
+    private var isFastForwarding = false
+    private var originalSpeed = 1.0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +58,7 @@ class PlayerActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         playerManager = PlayerManager(this)
-        fileRepository = FileRepository(this)
+        videoRepository = CompositeVideoRepository(this)
         
         binding.playerView.player = playerManager.player
         binding.playerView.useController = false
@@ -100,7 +103,7 @@ class PlayerActivity : AppCompatActivity() {
 
         folderUri?.let { uriString ->
             lifecycleScope.launch {
-                videoList = fileRepository.getVideoFiles(Uri.parse(uriString))
+                videoList = videoRepository.getVideoFiles(Uri.parse(uriString))
                 currentIndex = videoList.indexOfFirst { it.uri == videoUri }
                 updateFileNameDisplay()
             }
@@ -248,7 +251,6 @@ class PlayerActivity : AppCompatActivity() {
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-                showControls()
                 val deltaY = (e1?.y ?: 0f) - e2.y
                 val screenWidth = binding.playerView.width
                 
@@ -282,6 +284,10 @@ class PlayerActivity : AppCompatActivity() {
                 return true
             }
 
+            override fun onLongPress(e: MotionEvent) {
+                startFastForward()
+            }
+
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 val screenWidth = binding.playerView.width
                 if (e.x < screenWidth / 2) {
@@ -289,13 +295,22 @@ class PlayerActivity : AppCompatActivity() {
                 } else {
                     playerManager.player.seekForward()
                 }
+                // Show indicator for skip
+                showIndicator(
+                    if (e.x < screenWidth / 2) R.drawable.ic_previous else R.drawable.ic_next,
+                    -1 // No progress bar for skip
+                )
+                hideHandler.postDelayed({ binding.indicatorLayout.visibility = View.GONE }, 500)
                 return true
             }
         })
 
         binding.playerView.setOnTouchListener { v, event ->
             gestureDetector.onTouchEvent(event)
-            if (event.action == MotionEvent.ACTION_UP) {
+            if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+                if (isFastForwarding) {
+                    stopFastForward()
+                }
                 // 指を離したらしばらくしてインジケーターを隠す
                 hideHandler.postDelayed({ binding.indicatorLayout.visibility = View.GONE }, 1000)
             }
@@ -304,10 +319,32 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun startFastForward() {
+        if (isFastForwarding) return
+        isFastForwarding = true
+        originalSpeed = playerManager.player.playbackParameters.speed
+        playerManager.player.setPlaybackSpeed(2.0f)
+        binding.tvSpeedIndicator.visibility = View.VISIBLE
+        binding.tvSpeedIndicator.text = "2.0x >>"
+        hideControls()
+    }
+
+    private fun stopFastForward() {
+        if (!isFastForwarding) return
+        isFastForwarding = false
+        playerManager.player.setPlaybackSpeed(originalSpeed)
+        binding.tvSpeedIndicator.visibility = View.GONE
+    }
+
     private fun showIndicator(iconRes: Int, progress: Int) {
         binding.indicatorLayout.visibility = View.VISIBLE
         binding.ivIndicatorIcon.setImageResource(iconRes)
-        binding.pbIndicator.progress = progress
+        if (progress >= 0) {
+            binding.pbIndicator.visibility = View.VISIBLE
+            binding.pbIndicator.progress = progress
+        } else {
+            binding.pbIndicator.visibility = View.GONE
+        }
     }
 
     override fun onStart() {
