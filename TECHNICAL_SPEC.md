@@ -8,8 +8,38 @@ Vivid F Player is an Android video player specialized for watching videos in off
 - **Language**: Kotlin
 - **Media Engine**: ExoPlayer (Media3)
 - **UI Architecture**: MVVM (ViewModel, LiveData/Flow)
-- **View Binding**: DataBinding / ViewBinding
-- **Service**: Foreground Service for Background Playback
+- **View Binding**: DataBinding
+
+## バージョン履歴 / Version History
+
+### v1.2.6 (2026-04-25)
+- **ネットワーク再生の追加 / Added Network Playback (SMB)**: `jcifs-ng`を統合し、NASや共有フォルダからの再生に対応。
+- **ハードウェア・デコード最適化 / Hardware Decoding Optimization**: 高ビットレート動画向けにデコーダ設定とバッファ制御を調整。
+- **UI改善 / UI Improvements**: SMBフォルダ追加用のダイアログとアイコンを追加。
+
+### v1.2.5 (2026-04-23)
+- **安定性の向上 / Stability Improvements**: Xiaomi端末等でのバックグラウンド再生とスリープ時の安定性を強化。
+- **APIの現代化 / API Modernization**: Android 13 (SDK 33) 以降のParcelable取得処理を最適化。
+- **ビルドの自動化 / Build Automation**: GitHubへの自動デプロイ・スクリプトを更新。
+
+---
+
+## 技術的詳細 / Technical Details
+
+### 1. ネットワーク再生 (SMB) / Network Playback (SMB)
+- **ライブラリ / Library**: `com.github.codelibs:jcifs-ng:2.1.31`
+- **実装 / Implementation**: 
+    - `SmbVideoRepository`: SMB共有内のファイルをリストアップ。
+    - `SmbDataSource`: ExoPlayer(Media3)でSMBプロトコルを直接ストリーミングするためのカスタムデータソース。
+    - `CompositeVideoRepository`: URIスキーム(`content://` vs `smb://`)に基づいてリポジトリを切り替え。
+
+### 2. ハードウェア最適化 / Hardware Optimization
+- **デコーダ / Decoder**: `DefaultRenderersFactory` で `EXTENSION_RENDERER_MODE_ON` を設定し、ハードウェアデコーダを優先。
+- **バッファ制御 / Buffer Control**: `DefaultLoadControl` をカスタマイズし、最小30秒、最大60秒のバッファを確保。ネットワーク遅延や高負荷時の再生を安定化。
+
+### 3. 電源管理 / Power Management
+- `WAKE_MODE_LOCAL` および `FLAG_KEEP_SCREEN_ON` を使用し、動画再生中の画面消灯を防止。
+- `PlaybackService` で `WakeLock` を適切に保持。
 
 ## 3. バックグラウンド再生の安定化実装 / Background Playback Stability Implementation
 
