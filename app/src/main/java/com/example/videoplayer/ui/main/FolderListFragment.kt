@@ -98,7 +98,6 @@ class FolderListFragment : Fragment() {
 
         dialog.show()
     }
-    }
 
     private fun setupQuickResume() {
         val resumeManager = ResumeManager(requireContext())
