@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.6
+# 技術仕様書 (Technical Specifications) - v1.2.7
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -11,6 +11,11 @@ Vivid F Player is an Android video player specialized for watching videos in off
 - **View Binding**: DataBinding
 
 ## バージョン履歴 / Version History
+
+### v1.2.7 (2026-04-25)
+- **YouTube風操作の追加 / YouTube-style Gestures**: 画面長押しで2倍速、ダブルタップで10秒スキップ機能を実装。
+- **視覚的フィードバック / Visual Feedback**: 倍速インジケーターとスキップアイコンのオーバーレイ表示。
+- **コア・デバッグ / Core Debugging**: SMB再生時のDataSource移譲不備の修正とUIバグの解消。
 
 ### v1.2.6 (2026-04-25)
 - **ネットワーク再生の追加 / Added Network Playback (SMB)**: `jcifs-ng`を統合し、NASや共有フォルダからの再生に対応。
@@ -100,4 +105,8 @@ The following settings are recommended to prevent the OS from killing the app or
 ## 5. UI/UX デザイン / UI/UX Design
 - **Color Theme**: Deep Black (#000000) for Player background.
 - **Visual Effects**: Glassmorphism for Bottom Sheets.
-- **Gestures**: Horizontal swipe for seeking, Vertical swipe for volume/brightness.
+- **Gestures**:
+    - **Vertical swipe**: Left side for brightness, Right side for volume.
+    - **Double tap**: 10s skip backward (left) or forward (right).
+    - **Long press**: 2.0x playback speed while holding.
+- **Feedback**: Overlay indicators for speed, volume, and brightness.
