@@ -247,6 +247,10 @@ class PlayerActivity : AppCompatActivity() {
         hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
     }
 
+    private val indicatorHideRunnable = Runnable {
+        binding.indicatorLayout.visibility = View.GONE
+    }
+    
     private fun setupGestures() {
         val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
@@ -260,7 +264,7 @@ class PlayerActivity : AppCompatActivity() {
                     val brightness = (lp.screenBrightness.takeIf { it >= 0 } ?: 0.5f) + deltaY / 2000f
                     lp.screenBrightness = brightness.coerceIn(0.01f, 1.0f)
                     window.attributes = lp
-                    showIndicator(R.drawable.ic_brightness, (lp.screenBrightness * 100).toInt())
+                    showIndicator(R.drawable.ic_brightness, (lp.screenBrightness * 100).toInt(), "${(lp.screenBrightness * 100).toInt()}%")
                 } else {
                     // Volume (Right side)
                     val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
@@ -269,7 +273,7 @@ class PlayerActivity : AppCompatActivity() {
                     if (deltaVol != 0) {
                         val newVolume = (currentVolume + (if (deltaVol > 0) 1 else -1)).coerceIn(0, maxVolume)
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
-                        showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt())
+                        showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt(), "${(newVolume.toFloat() / maxVolume * 100).toInt()}%")
                     }
                 }
                 return true
@@ -290,17 +294,18 @@ class PlayerActivity : AppCompatActivity() {
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 val screenWidth = binding.playerView.width
-                if (e.x < screenWidth / 2) {
+                val isLeft = e.x < screenWidth / 2
+                if (isLeft) {
                     playerManager.player.seekBack()
                 } else {
                     playerManager.player.seekForward()
                 }
-                // Show indicator for skip
                 showIndicator(
-                    if (e.x < screenWidth / 2) R.drawable.ic_previous else R.drawable.ic_next,
-                    -1 // No progress bar for skip
+                    if (isLeft) R.drawable.ic_previous else R.drawable.ic_next,
+                    -1,
+                    if (isLeft) "-10s" else "+10s"
                 )
-                hideHandler.postDelayed({ binding.indicatorLayout.visibility = View.GONE }, 500)
+                hideHandler.postDelayed(indicatorHideRunnable, 800)
                 return true
             }
         })
@@ -311,8 +316,10 @@ class PlayerActivity : AppCompatActivity() {
                 if (isFastForwarding) {
                     stopFastForward()
                 }
-                // 指を離したらしばらくしてインジケーターを隠す
-                hideHandler.postDelayed({ binding.indicatorLayout.visibility = View.GONE }, 1000)
+                // 指を離したらしばらくしてインジケーターを隠す (スクロール操作用)
+                if (binding.indicatorLayout.visibility == View.VISIBLE) {
+                    hideHandler.postDelayed(indicatorHideRunnable, 1000)
+                }
             }
             v.performClick()
             true
@@ -336,9 +343,18 @@ class PlayerActivity : AppCompatActivity() {
         binding.tvSpeedIndicator.visibility = View.GONE
     }
 
-    private fun showIndicator(iconRes: Int, progress: Int) {
+    private fun showIndicator(iconRes: Int, progress: Int, text: String? = null) {
+        hideHandler.removeCallbacks(indicatorHideRunnable)
         binding.indicatorLayout.visibility = View.VISIBLE
         binding.ivIndicatorIcon.setImageResource(iconRes)
+        
+        if (text != null) {
+            binding.tvIndicatorText.visibility = View.VISIBLE
+            binding.tvIndicatorText.text = text
+        } else {
+            binding.tvIndicatorText.visibility = View.GONE
+        }
+
         if (progress >= 0) {
             binding.pbIndicator.visibility = View.VISIBLE
             binding.pbIndicator.progress = progress
