@@ -4,11 +4,11 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.7
+- **Current Version**: v1.2.10
 - **Latest Build**: `app-debug.apk` (Check Releases)
 
-Androidの端末内(SDカード含む)のフォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
-Simply configure folders within your Android device (including SD cards) and play video files continuously in filename order.
+Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
+Simply configure folders within your Android device (including SD cards) or SMB shares (NAS) and play video files continuously in filename order.
 
 電波が悪いキャンプ場で🍺飲みながら垂れ流しで動画を観るアプリ。
 An app for "flowing" videos while drinking beer 🍺 at a campsite with poor reception.
@@ -21,21 +21,16 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 
 ## 🚀 主な機能 / Key Features
 
-| 機能 / Feature | アイコン / Icon | 説明 / Description |
-| :--- | :---: | :--- |
-| **マルチフォルダ管理**<br>Multi-Folder Management | <img src="docs/images/folder_icon.png" width="32"> | 複数の動画保存場所を登録・管理。 / Register and manage multiple video storage locations. |
-| **自然順連続再生**<br>Natural Sort Playback | <img src="docs/images/video_icon.png" width="32"> | ファイル名の数字を考慮したインテリジェントな連続再生。 / Intelligent continuous playback considering numbers in filenames. |
-| **設定 & カスタマイズ**<br>Settings & Customization | <img src="docs/images/settings_icon.png" width="32"> | 再生速度やバックグラウンド再生の設定。 / Configure playback speed and background play. |
-| **直感的な操作**<br>Intuitive Controls | <img src="docs/images/play_icon.png" width="24"> <img src="docs/images/pause_icon.png" width="24"> | 鮮やかなボタンとジェスチャーで操作。 / Operate with vivid buttons and gestures. |
-
-- 🔄 **自然順連続再生 / Natural Sort Playback**: ファイル名の数字を考慮したインテリジェントな連続再生。 / Intelligent continuous playback considering numbers in filenames.
+- **🎬 モダンな再生コントロール / Modern Playback**: YouTube風ジェスチャー（長押し2倍速、ダブルタップスキップ）、画面ロック、ABループ機能。 / YouTube-style gestures, Screen Lock, and AB Loop.
+- **📂 マルチフォルダ管理 / Folder Management**: ローカルおよびSMBフォルダを複数登録・管理可能。 / Register multiple local or SMB folders.
+- **🌐 SMBストリーミング / SMB Streaming**: NAS等のSMB共有から直接再生。認証情報も安全に保持。 / Play directly from SMB shares with stable credential handling.
+- **📄 字幕サポート / Subtitle Support**: 同一ファイル名の字幕（.srt, .ass, .vtt）の自動読み込みと手動選択。 / Auto-loading and manual selection of subtitles.
+- **🌙 Vividデザイン / Vivid Design**: グラスモーフィズムを採用したモダンなUIと、リストでの再生進捗表示。 / Modern glassmorphism UI with progress indicators in lists.
+- **🎵 バックグラウンド再生 / Background Play**: 画面オフや他アプリ使用中でも音声再生を継続。 / Continuous audio playback in the background.
 - 📺 **ピクチャー・イン・ピクチャー (PiP) / Picture-in-Picture**: 他のアプリを使いながら動画を視聴。 / Watch videos while using other apps.
-- 🎧 **バックグラウンド音声再生 / Background Audio Playback**: 画面を閉じても音声のみ継続可能（設定で切替）。 / Continue audio playback even when the screen is closed (configurable).
-- 🎨 **Vivid & Premium UI**: グラスモーフィズムと鮮やかなグラデーションを採用したモダンなデザイン。 / Modern design using glassmorphism and vibrant gradients.
 - 🖐️ **ジェスチャーコントロール / Gesture Control**: 明るさ、音量、シークを直感的に操作。 / Intuitively control brightness, volume, and seeking.
 - ⚡ **再生速度変更 / Playback Speed Control**: 0.5xから2.0xまで調整可能。 / Adjustable from 0.5x to 2.0x.
 - 🔖 **レジューム再生 / Resume Playback**: 続きから再生。 / Resume from where you left off.
-- ⏭️ **YouTube風ジェスチャー / YouTube-style Gestures**: 長押しで2倍速、ダブルタップで10秒スキップ。 / Long press for 2x speed, double tap for 10s skip.
 
 ## 📁 フォルダ構成 / Directory Structure
 
