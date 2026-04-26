@@ -11,9 +11,10 @@ import kotlinx.coroutines.withContext
 class LocalVideoRepository(private val context: Context) : VideoRepository {
 
     private val videoExtensions = setOf("mp4", "mkv", "avi")
-
-    override suspend fun getVideoFiles(uri: Uri): List<VideoFile> = withContext(Dispatchers.IO) {
-        val root = DocumentFile.fromTreeUri(context, uri)
+    private val subtitleExtensions = setOf("srt", "ass", "vtt")
+    
+    override suspend fun getVideoFiles(folderUri: Uri): List<VideoFile> = withContext(Dispatchers.IO) {
+        val root = DocumentFile.fromTreeUri(context, folderUri)
         if (root == null || !root.canRead()) return@withContext emptyList<VideoFile>()
 
         root.listFiles()
@@ -28,5 +29,18 @@ class LocalVideoRepository(private val context: Context) : VideoRepository {
                 )
             }
             .sortedWith { a, b -> NaturalOrderComparator.compare(a.name, b.name) }
+    }
+
+    override suspend fun getSubtitleFiles(folderUri: Uri, videoFileName: String): List<Uri> = withContext(Dispatchers.IO) {
+        val root = DocumentFile.fromTreeUri(context, folderUri) ?: return@withContext emptyList()
+        val videoBaseName = videoFileName.substringBeforeLast('.')
+
+        root.listFiles()
+            .filter { 
+                it.isFile && 
+                it.name?.startsWith(videoBaseName) == true && 
+                subtitleExtensions.contains(it.name?.substringAfterLast('.')?.lowercase()) 
+            }
+            .map { it.uri }
     }
 }
