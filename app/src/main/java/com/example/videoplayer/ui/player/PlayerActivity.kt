@@ -19,7 +19,11 @@ import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.ui.AspectRatioFrameLayout
 import com.example.videoplayer.R
 import com.example.videoplayer.data.manager.ResumeManager
 import com.example.videoplayer.data.model.VideoFile
@@ -30,6 +34,7 @@ import com.example.videoplayer.player.PlaybackService
 import com.example.videoplayer.player.PlayerManager
 import com.example.videoplayer.ui.main.MainViewModel
 import com.example.videoplayer.ui.main.SettingsBottomSheet
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class PlayerActivity : AppCompatActivity() {
@@ -45,52 +50,62 @@ class PlayerActivity : AppCompatActivity() {
     private var isBackgroundPlayEnabled: Boolean = false
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideRunnable = Runnable { hideControls() }
-    private val HIDE_DELAY = 3000L // 3秒
+    private val HIDE_DELAY = 3000L
+    private lateinit var resumeManager: ResumeManager
+    private var playJob: Job? = null
+    private var isLocked = false
     private var isFastForwarding = false
     private var originalSpeed = 1.0f
+
+    private var abLoopA: Long = -1L
+    private var abLoopB: Long = -1L
+    private enum class ABLoopState { OFF, SET_A, SET_B }
+    private var abLoopState = ABLoopState.OFF
+
+    private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 画面スリープ防止 / Prevent screen sleep
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         playerManager = PlayerManager(this)
         videoRepository = CompositeVideoRepository(this)
+        resumeManager = ResumeManager(this)
         
         binding.playerView.player = playerManager.player
         binding.playerView.useController = false
         binding.playerView.keepScreenOn = true
 
-        // Settings 監視
-        lifecycleScope.launch {
-            viewModel.playbackSpeed.collect { speed ->
-                playerManager.speed = speed
-            }
-        }
-        lifecycleScope.launch {
-            viewModel.isBackgroundPlayEnabled.collect { enabled ->
-                isBackgroundPlayEnabled = enabled
-            }
-        }
-        lifecycleScope.launch {
-            viewModel.repeatMode.collect { mode ->
-                playerManager.player.repeatMode = mode
-            }
-        }
-        lifecycleScope.launch {
-            viewModel.shuffleModeEnabled.collect { enabled ->
-                playerManager.player.shuffleModeEnabled = enabled
-            }
-        }
-        lifecycleScope.launch {
-            viewModel.stopPlaybackEvent.collect {
-                finish()
-            }
-        }
+        setupSettingsObservers()
+        handleIntent()
+        setupControls()
+        setupGestures()
+        
+        playerManager.player.addListener(playerListener)
+    }
 
+    private fun setupSettingsObservers() {
+        lifecycleScope.launch {
+            viewModel.playbackSpeed.collect { playerManager.speed = it }
+        }
+        lifecycleScope.launch {
+            viewModel.isBackgroundPlayEnabled.collect { isBackgroundPlayEnabled = it }
+        }
+        lifecycleScope.launch {
+            viewModel.repeatMode.collect { playerManager.player.repeatMode = it }
+        }
+        lifecycleScope.launch {
+            viewModel.shuffleModeEnabled.collect { playerManager.player.shuffleModeEnabled = it }
+        }
+        lifecycleScope.launch {
+            viewModel.stopPlaybackEvent.collect { finish() }
+        }
+    }
+
+    private fun handleIntent() {
         val videoUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra("video_uri", Uri::class.java)
         } else {
@@ -98,37 +113,47 @@ class PlayerActivity : AppCompatActivity() {
             intent.getParcelableExtra<Uri>("video_uri")
         }
         folderUri = intent.getStringExtra("folder_uri")
-        val resumePos = intent.getLongExtra("resume_pos", 0L)
         currentFileName = videoUri?.lastPathSegment
+        currentVideoUri = videoUri
 
         folderUri?.let { uriString ->
             lifecycleScope.launch {
                 videoList = videoRepository.getVideoFiles(Uri.parse(uriString))
                 currentIndex = videoList.indexOfFirst { it.uri == videoUri }
-                updateFileNameDisplay()
+                if (currentIndex != -1) {
+                    playVideo(currentIndex)
+                } else if (videoUri != null) {
+                    val pos = resumeManager.getFileResumePosition(videoUri.toString())
+                    playerManager.play(videoUri, pos)
+                }
+            }
+        } ?: run {
+            videoUri?.let { 
+                val pos = resumeManager.getFileResumePosition(it.toString())
+                playerManager.play(it, pos) 
             }
         }
-
-        currentVideoUri = videoUri
-        videoUri?.let { playerManager.play(it, resumePos) }
-
-        playerManager.player.addListener(playerListener)
-
-        setupControls()
-        setupGestures()
     }
 
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
-            // 自動連続再生 / Auto continuous playback
             if (playbackState == Player.STATE_ENDED) {
                 playNext()
             }
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
-            // 再生・一時停止アイコンの更新 / Update play/pause icon
             updatePlayPauseIcon(isPlaying)
+        }
+
+        override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
+            checkABLoop()
+        }
+
+        override fun onEvents(player: Player, events: Player.Events) {
+            if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED) || events.contains(Player.EVENT_IS_PLAYING_CHANGED)) {
+                checkABLoop()
+            }
         }
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -136,80 +161,86 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    override fun onUserLeaveHint() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val width = binding.playerView.width.takeIf { it > 0 } ?: 16
-            val height = binding.playerView.height.takeIf { it > 0 } ?: 9
-            val params = PictureInPictureParams.Builder()
-                .setAspectRatio(Rational(width, height))
-                .build()
-            enterPictureInPictureMode(params)
+    private val abLoopHandler = Handler(Looper.getMainLooper())
+    private val abLoopRunnable = object : Runnable {
+        override fun run() {
+            checkABLoop()
+            abLoopHandler.postDelayed(this, 500)
         }
     }
 
-    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        if (isInPictureInPictureMode) {
-            binding.controlsLayout.visibility = View.GONE
-            binding.bottomControls.visibility = View.GONE
-            binding.playerView.useController = false
-        } else {
-            binding.controlsLayout.visibility = View.VISIBLE
-            binding.bottomControls.visibility = View.VISIBLE
-            binding.playerView.useController = false
+    private fun checkABLoop() {
+        if (abLoopA != -1L && abLoopB != -1L) {
+            val current = playerManager.player.currentPosition
+            if (current >= abLoopB || current < abLoopA) {
+                playerManager.player.seekTo(abLoopA)
+            }
         }
     }
 
-    private fun updateFileNameDisplay() {
-        binding.tvFileName.text = currentFileName ?: "Unknown"
-    }
-
-    private fun updatePlayPauseIcon(isPlaying: Boolean) {
-        binding.btnPlayPause.setImageResource(
-            if (isPlaying) R.drawable.ic_pause 
-            else R.drawable.ic_play
-        )
-    }
-
-    private fun playNext() {
-        if (videoList.isEmpty()) return
-        if (currentIndex < videoList.size - 1) {
-            currentIndex++
-            playCurrentIndex()
-        } else {
-            android.widget.Toast.makeText(this, getString(R.string.last_file), android.widget.Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun playPrevious() {
-        if (currentIndex > 0) {
-            currentIndex--
-            playCurrentIndex()
-        } else {
-            android.widget.Toast.makeText(this, getString(R.string.first_file), android.widget.Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun playCurrentIndex() {
-        val video = videoList[currentIndex]
-        currentFileName = video.name
+    private fun playVideo(index: Int) {
+        if (index < 0 || index >= videoList.size) return
+        
+        val video = videoList[index]
+        currentIndex = index
         currentVideoUri = video.uri
-        updateFileNameDisplay()
-        playerManager.play(video.uri)
+        currentFileName = video.name
+        
+        playJob?.cancel()
+        playJob = lifecycleScope.launch {
+            val folder = folderUri?.let { Uri.parse(it) }
+            val subtitleConfigs = if (folder != null) {
+                videoRepository.getSubtitleFiles(folder, video.name).map { createSubtitleConfig(it) }
+            } else emptyList()
+
+            val position = resumeManager.getFileResumePosition(video.uri.toString())
+            playerManager.play(video, subtitleConfigs, position)
+            updateFileNameDisplay()
+            
+            // Reset AB Loop
+            abLoopA = -1L
+            abLoopB = -1L
+            abLoopState = ABLoopState.OFF
+            updateABLoopButtonUI()
+        }
+    }
+
+    private fun createSubtitleConfig(uri: Uri): MediaItem.SubtitleConfiguration {
+        val extension = uri.toString().substringAfterLast('.', "").lowercase()
+        val mimeType = when (extension) {
+            "srt" -> MimeTypes.APPLICATION_SUBRIP
+            "vtt" -> MimeTypes.TEXT_VTT
+            "ass", "ssa" -> MimeTypes.TEXT_SSA
+            else -> MimeTypes.APPLICATION_SUBRIP
+        }
+        return MediaItem.SubtitleConfiguration.Builder(uri)
+            .setMimeType(mimeType)
+            .setLanguage("und")
+            .setLabel(uri.lastPathSegment ?: "Subtitle")
+            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+            .build()
     }
 
     private fun setupControls() {
-        binding.btnBack.setOnClickListener { finish() }
+        binding.btnBack.setOnClickListener { if (!isLocked) finish() }
         binding.tvFileName.text = currentFileName
-        binding.tvFileName.isSelected = true // Enable marquee
+
+        binding.btnSubtitles.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            showTrackSelectionDialog(C.TRACK_TYPE_TEXT, "Select Subtitles")
+        }
+
+        binding.btnLock.setOnClickListener {
+            toggleLock()
+        }
 
         binding.btnSettings.setOnClickListener {
-            resetHideTimer()
+            if (isLocked) return@setOnClickListener
             SettingsBottomSheet().show(supportFragmentManager, "settings")
         }
 
         binding.btnPlayPause.setOnClickListener {
-            resetHideTimer()
+            if (isLocked) return@setOnClickListener
             if (playerManager.player.isPlaying) {
                 playerManager.player.pause()
             } else {
@@ -218,107 +249,209 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         binding.btnNext.setOnClickListener {
-            resetHideTimer()
+            if (isLocked) return@setOnClickListener
             playNext()
         }
 
         binding.btnPrevious.setOnClickListener {
-            resetHideTimer()
+            if (isLocked) return@setOnClickListener
             playPrevious()
         }
+
+        binding.btnAspectRatio.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            cycleAspectRatio()
+        }
+
+        binding.btnAbLoop.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            cycleABLoop()
+        }
         
-        resetHideTimer()
+        // Bonus: Aspect Ratio Toggle
+        binding.playerView.setOnClickListener {
+            if (isLocked) {
+                toggleLock() // Easy unlock on click? No, maybe just show controls
+            } else {
+                if (binding.controlsLayout.visibility == View.VISIBLE) hideControls() else showControls()
+            }
+        }
     }
-    
+
+    private fun toggleLock() {
+        isLocked = !isLocked
+        binding.btnLock.setImageResource(if (isLocked) R.drawable.ic_lock else R.drawable.ic_lock_open)
+        if (isLocked) {
+            hideControls()
+            android.widget.Toast.makeText(this, "Screen Locked", android.widget.Toast.LENGTH_SHORT).show()
+        } else {
+            showControls()
+            android.widget.Toast.makeText(this, "Screen Unlocked", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showTrackSelectionDialog(trackType: Int, title: String) {
+        androidx.media3.ui.TrackSelectionDialogBuilder(this, title, playerManager.player, trackType)
+            .build()
+            .show()
+    }
+
+    private fun playNext() {
+        if (videoList.isEmpty()) return
+        if (currentIndex < videoList.size - 1) {
+            playVideo(currentIndex + 1)
+        } else {
+            android.widget.Toast.makeText(this, getString(R.string.last_file), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun playPrevious() {
+        if (currentIndex > 0) {
+            playVideo(currentIndex - 1)
+        } else {
+            android.widget.Toast.makeText(this, getString(R.string.first_file), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun updateFileNameDisplay() {
+        binding.tvFileName.text = currentFileName ?: "Unknown"
+    }
+
+    private fun cycleAspectRatio() {
+        resizeMode = when (resizeMode) {
+            AspectRatioFrameLayout.RESIZE_MODE_FIT -> AspectRatioFrameLayout.RESIZE_MODE_FILL
+            AspectRatioFrameLayout.RESIZE_MODE_FILL -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH
+            AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH -> AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT
+            else -> AspectRatioFrameLayout.RESIZE_MODE_FIT
+        }
+        binding.playerView.resizeMode = resizeMode
+        val modeText = when (resizeMode) {
+            AspectRatioFrameLayout.RESIZE_MODE_FIT -> "Fit"
+            AspectRatioFrameLayout.RESIZE_MODE_FILL -> "Fill"
+            AspectRatioFrameLayout.RESIZE_MODE_ZOOM -> "Zoom"
+            AspectRatioFrameLayout.RESIZE_MODE_FIXED_WIDTH -> "Fixed Width"
+            AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT -> "Fixed Height"
+            else -> "Fit"
+        }
+        showIndicator(R.drawable.ic_aspect_ratio, -1, modeText)
+    }
+
+    private fun cycleABLoop() {
+        val currentPos = playerManager.player.currentPosition
+        when (abLoopState) {
+            ABLoopState.OFF -> {
+                abLoopA = currentPos
+                abLoopState = ABLoopState.SET_A
+                showIndicator(R.drawable.ic_loop, -1, "A: ${formatTime(abLoopA)}")
+            }
+            ABLoopState.SET_A -> {
+                if (currentPos > abLoopA) {
+                    abLoopB = currentPos
+                    abLoopState = ABLoopState.SET_B
+                    showIndicator(R.drawable.ic_loop, -1, "B: ${formatTime(abLoopB)} (Loop ON)")
+                } else {
+                    android.widget.Toast.makeText(this, "B must be after A", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+            ABLoopState.SET_B -> {
+                abLoopA = -1L
+                abLoopB = -1L
+                abLoopState = ABLoopState.OFF
+                showIndicator(R.drawable.ic_loop, -1, "Loop OFF")
+            }
+        }
+        updateABLoopButtonUI()
+    }
+
+    private fun updateABLoopButtonUI() {
+        val color = if (abLoopState != ABLoopState.OFF) getColor(R.color.vivid_blue) else 0xFFFFFFFF.toInt()
+        binding.btnAbLoop.setColorFilter(color)
+    }
+
+    private fun formatTime(ms: Long): String {
+        val seconds = (ms / 1000) % 60
+        val minutes = (ms / (1000 * 60)) % 60
+        val hours = (ms / (1000 * 60 * 60))
+        return if (hours > 0) String.format("%d:%02d:%02d", hours, minutes, seconds)
+        else String.format("%02d:%02d", minutes, seconds)
+    }
+
+    private fun updatePlayPauseIcon(isPlaying: Boolean) {
+        binding.btnPlayPause.setImageResource(if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play)
+    }
+
     private fun showControls() {
         binding.controlsLayout.visibility = View.VISIBLE
         binding.bottomControls.visibility = View.VISIBLE
-        resetHideTimer()
+        hideHandler.removeCallbacks(hideRunnable)
+        if (!isLocked) {
+            hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
+        }
     }
 
     private fun hideControls() {
-        if (isInPictureInPictureMode) return
         binding.controlsLayout.visibility = View.GONE
         binding.bottomControls.visibility = View.GONE
     }
 
-    private fun resetHideTimer() {
-        hideHandler.removeCallbacks(hideRunnable)
-        hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
-    }
-
-    private val indicatorHideRunnable = Runnable {
-        binding.indicatorLayout.visibility = View.GONE
-    }
-    
     private fun setupGestures() {
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
+                if (isLocked) return false
                 val deltaY = (e1?.y ?: 0f) - e2.y
                 val screenWidth = binding.playerView.width
-                
                 if (e2.x < screenWidth / 2) {
-                    // Brightness (Left side)
+                    // Brightness
                     val lp = window.attributes
-                    val brightness = (lp.screenBrightness.takeIf { it >= 0 } ?: 0.5f) + deltaY / 2000f
-                    lp.screenBrightness = brightness.coerceIn(0.01f, 1.0f)
+                    lp.screenBrightness = (lp.screenBrightness + deltaY / 1000).coerceIn(0.01f, 1.0f)
                     window.attributes = lp
-                    showIndicator(R.drawable.ic_brightness, (lp.screenBrightness * 100).toInt(), "${(lp.screenBrightness * 100).toInt()}%")
+                    showIndicator(R.drawable.ic_brightness, (lp.screenBrightness * 100).toInt())
                 } else {
-                    // Volume (Right side)
+                    // Volume
+                    val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
                     val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
                     val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                     val deltaVol = (deltaY / 500).toInt()
                     if (deltaVol != 0) {
                         val newVolume = (currentVolume + (if (deltaVol > 0) 1 else -1)).coerceIn(0, maxVolume)
                         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
-                        showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt(), "${(newVolume.toFloat() / maxVolume * 100).toInt()}%")
+                        showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt())
                     }
                 }
                 return true
             }
 
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                if (binding.controlsLayout.visibility == View.VISIBLE) {
-                    hideControls()
-                } else {
-                    showControls()
-                }
+                if (binding.controlsLayout.visibility == View.VISIBLE) hideControls() else showControls()
                 return true
             }
 
             override fun onLongPress(e: MotionEvent) {
-                startFastForward()
+                if (!isLocked) startFastForward()
             }
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
-                val screenWidth = binding.playerView.width
-                val isLeft = e.x < screenWidth / 2
-                if (isLeft) {
-                    playerManager.player.seekBack()
-                } else {
-                    playerManager.player.seekForward()
-                }
-                showIndicator(
-                    if (isLeft) R.drawable.ic_previous else R.drawable.ic_next,
-                    -1,
-                    if (isLeft) "-10s" else "+10s"
-                )
-                hideHandler.postDelayed(indicatorHideRunnable, 800)
+                if (isLocked) return false
+                val isLeft = e.x < binding.playerView.width / 2
+                if (isLeft) playerManager.player.seekBack() else playerManager.player.seekForward()
+                showIndicator(if (isLeft) R.drawable.ic_previous else R.drawable.ic_next, -1, if (isLeft) "-10s" else "+10s")
                 return true
             }
         })
 
         binding.playerView.setOnTouchListener { v, event ->
+            if (isLocked) {
+                if (event.action == MotionEvent.ACTION_DOWN && binding.controlsLayout.visibility != View.VISIBLE) {
+                    showControls()
+                }
+                return@setOnTouchListener false
+            }
             gestureDetector.onTouchEvent(event)
             if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
-                if (isFastForwarding) {
-                    stopFastForward()
-                }
-                // 指を離したらしばらくしてインジケーターを隠す (スクロール操作用)
+                if (isFastForwarding) stopFastForward()
                 if (binding.indicatorLayout.visibility == View.VISIBLE) {
-                    hideHandler.postDelayed(indicatorHideRunnable, 1000)
+                    hideHandler.postDelayed({ binding.indicatorLayout.visibility = View.GONE }, 1000)
                 }
             }
             v.performClick()
@@ -327,34 +460,28 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun startFastForward() {
-        if (isFastForwarding) return
         isFastForwarding = true
         originalSpeed = playerManager.player.playbackParameters.speed
         playerManager.player.setPlaybackSpeed(2.0f)
         binding.tvSpeedIndicator.visibility = View.VISIBLE
-        binding.tvSpeedIndicator.text = "2.0x >>"
         hideControls()
     }
 
     private fun stopFastForward() {
-        if (!isFastForwarding) return
         isFastForwarding = false
         playerManager.player.setPlaybackSpeed(originalSpeed)
         binding.tvSpeedIndicator.visibility = View.GONE
     }
 
     private fun showIndicator(iconRes: Int, progress: Int, text: String? = null) {
-        hideHandler.removeCallbacks(indicatorHideRunnable)
         binding.indicatorLayout.visibility = View.VISIBLE
         binding.ivIndicatorIcon.setImageResource(iconRes)
-        
         if (text != null) {
             binding.tvIndicatorText.visibility = View.VISIBLE
             binding.tvIndicatorText.text = text
         } else {
             binding.tvIndicatorText.visibility = View.GONE
         }
-
         if (progress >= 0) {
             binding.pbIndicator.visibility = View.VISIBLE
             binding.pbIndicator.progress = progress
@@ -366,17 +493,15 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         binding.playerView.player = playerManager.player
+        abLoopHandler.post(abLoopRunnable)
     }
 
     override fun onStop() {
         super.onStop()
+        abLoopHandler.removeCallbacks(abLoopRunnable)
         if (isBackgroundPlayEnabled || isInPictureInPictureMode) {
             val intent = Intent(this, PlaybackService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
-            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
         } else {
             playerManager.player.pause()
             stopService(Intent(this, PlaybackService::class.java))
@@ -388,8 +513,12 @@ class PlayerActivity : AppCompatActivity() {
         super.onPause()
         folderUri?.let { uri ->
             currentFileName?.let { fileName ->
-                val videoUriStr = currentVideoUri?.toString() ?: ""
-                ResumeManager(this).saveResumePosition(uri, fileName, videoUriStr, playerManager.player.currentPosition)
+                val duration = playerManager.player.duration
+                if (duration > 0) {
+                    resumeManager.saveResumePosition(uri, fileName, currentVideoUri.toString(), playerManager.player.currentPosition, duration)
+                } else {
+                    resumeManager.saveResumePosition(uri, fileName, currentVideoUri.toString(), playerManager.player.currentPosition, 0)
+                }
             }
         }
     }
@@ -397,10 +526,6 @@ class PlayerActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         playerManager.player.removeListener(playerListener)
-        // 不要なリークを防ぐため、バックグラウンド再生中でなければ解放
-        // Release player if background playback is not enabled to prevent leaks
-        if (!isBackgroundPlayEnabled) {
-            playerManager.release()
-        }
+        if (!isBackgroundPlayEnabled) playerManager.release()
     }
 }
