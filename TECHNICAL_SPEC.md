@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.7
+# 技術仕様書 (Technical Specifications) - v1.2.10
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -11,6 +11,19 @@ Vivid F Player is an Android video player specialized for watching videos in off
 - **View Binding**: DataBinding
 
 ## バージョン履歴 / Version History
+
+### v1.2.10 (Current)
+- **Screen Lock**: Added lock button to disable gestures and controls during playback.
+- **Aspect Ratio Control**: Cycle through Fit, Fill, Zoom, Fixed Width, and Fixed Height modes.
+- **AB Loop**: Set A and B points to loop a specific segment of the video.
+- **Subtitle Selection**: Integrated Media3 track selection UI for internal and external subtitles.
+- **Improved SMB Support**: Stable credential handling in URIs and concurrent resource loading.
+- **Playback Progress UI**: Progress bars in the file list to indicate resume positions.
+- **Optimized Lifecycle**: Proper player release in background service and activity.
+
+### v1.2.9
+- **Subtitle Support**: Auto-loading of external .srt/.ass/.vtt files.
+- **Navigation**: Improved folder navigation and resume logic.
 
 ### v1.2.7 (2026-04-25)
 - **YouTube風操作の追加 / YouTube-style Gestures**: 画面長押しで2倍速、ダブルタップで10秒スキップ機能を実装。
