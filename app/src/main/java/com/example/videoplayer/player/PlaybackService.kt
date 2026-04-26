@@ -33,6 +33,7 @@ class PlaybackService : MediaSessionService() {
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }
+        PlayerHolder.release()
         super.onDestroy()
     }
 }
