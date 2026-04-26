@@ -24,6 +24,19 @@ class PlayerManager(context: Context) {
             player.setPlaybackSpeed(value)
         }
 
+    fun play(video: com.example.videoplayer.data.model.VideoFile, subtitleConfigs: List<MediaItem.SubtitleConfiguration> = emptyList(), startPosition: Long = 0) {
+        val mediaItem = MediaItem.Builder()
+            .setUri(video.uri)
+            .setSubtitleConfigurations(subtitleConfigs)
+            .build()
+        player.setMediaItem(mediaItem)
+        if (startPosition > 0) {
+            player.seekTo(startPosition)
+        }
+        player.prepare()
+        player.play()
+    }
+
     fun play(uri: android.net.Uri, position: Long = 0) {
         val mediaItem = MediaItem.fromUri(uri)
         player.setMediaItem(mediaItem)
