@@ -14,4 +14,12 @@ class CompositeVideoRepository(private val context: Context) : VideoRepository {
             else -> localRepository.getVideoFiles(uri)
         }
     }
+
+    override suspend fun getSubtitleFiles(folderUri: Uri, videoFileName: String): List<Uri> {
+        return if (folderUri.scheme == "smb") {
+            smbRepository.getSubtitleFiles(folderUri, videoFileName)
+        } else {
+            localRepository.getSubtitleFiles(folderUri, videoFileName)
+        }
+    }
 }
