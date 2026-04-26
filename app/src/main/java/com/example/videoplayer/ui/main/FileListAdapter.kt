@@ -7,25 +7,31 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.videoplayer.data.model.VideoFile
 import com.example.videoplayer.databinding.ItemVideoFileBinding
+import com.example.videoplayer.data.manager.ResumeManager
 
 class FileListAdapter(private val onClick: (VideoFile) -> Unit) :
     ListAdapter<VideoFile, FileListAdapter.ViewHolder>(DiffCallback) {
 
-    class ViewHolder(private val binding: ItemVideoFileBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(private val binding: ItemVideoFileBinding, private val resumeManager: ResumeManager) : RecyclerView.ViewHolder(binding.root) {
         fun bind(file: VideoFile, onClick: (VideoFile) -> Unit) {
-            val displayName = if (file.name.length > 20) {
-                file.name.take(17) + "..."
+            binding.tvFileName.text = file.name
+            
+            val pos = resumeManager.getFileResumePosition(file.uri.toString())
+            val dur = resumeManager.getFileDuration(file.uri.toString())
+            if (pos > 0 && dur > 0) {
+                binding.pbVideoProgress.visibility = android.view.View.VISIBLE
+                binding.pbVideoProgress.progress = ((pos * 100) / dur).toInt()
             } else {
-                file.name
+                binding.pbVideoProgress.visibility = android.view.View.GONE
             }
-            binding.tvFileName.text = displayName
+
             binding.root.setOnClickListener { onClick(file) }
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemVideoFileBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
+        return ViewHolder(binding, ResumeManager(parent.context))
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
