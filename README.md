@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.12
+- **Current Version**: v1.2.13
 - **Latest Build**: `app-debug.apk` (Check Releases)
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -85,6 +85,12 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.13 (2026-05-08)
+- **ジェスチャー操作の改善 / Gesture Responsiveness Improvements**:
+  * 音量と輝度調整の感度を大幅に改善。 / Significantly improved sensitivity for volume and brightness adjustments.
+  * スクロール中の計算ロジックを刷新し、指の動きに正確に追従するように修正。 / Refined calculation logic to accurately track finger movement.
+  * 画面の端から端までスワイプすることで全範囲を調整可能に。 / Full range adjustment possible by swiping across the screen height.
 
 ### v1.2.12 (2026-05-08)
 - **アイコン表示の修正 / Icon Visibility Fixes**:
