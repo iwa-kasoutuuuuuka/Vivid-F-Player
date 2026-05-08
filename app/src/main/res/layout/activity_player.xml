@@ -27,6 +27,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF"
             android:src="@drawable/ic_back" />
 
         <TextView
@@ -46,6 +47,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:src="@drawable/ic_subtitles"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageButton
@@ -53,6 +55,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:src="@drawable/ic_lock_open"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageButton
@@ -60,6 +63,7 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:src="@drawable/ic_settings"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 
@@ -128,6 +132,7 @@
             android:layout_height="48dp"
             android:layout_marginStart="16dp"
             android:src="@drawable/ic_previous"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageButton
@@ -137,6 +142,7 @@
             android:layout_marginHorizontal="24dp"
             android:background="@drawable/bg_button_glow"
             android:src="@drawable/ic_play"
+            app:tint="#FFFFFF"
             android:contentDescription="Play/Pause" />
 
         <ImageButton
@@ -145,6 +151,7 @@
             android:layout_height="48dp"
             android:layout_marginEnd="16dp"
             android:src="@drawable/ic_next"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageButton
