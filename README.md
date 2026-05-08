@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.13
+- **Current Version**: v1.2.14
 - **Latest Build**: `app-debug.apk` (Check Releases)
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -85,6 +85,12 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.14 (2026-05-08)
+- **「白い四角」不具合の根本解決 / Final Fix for "White Square" Bug**:
+  * PNG形式のアイコンを廃止し、Android標準のベクター形式（XML）に完全に差し替え。 / Replaced PNG icons with standard Android Vector Drawables (XML).
+  * これにより、一部の端末でアイコンが白い四角形で表示される問題が完全に解消されました。 / This completely resolves the issue where icons appeared as white squares on some devices.
+  * ホワイトティントを再適用し、すべてのボタンのデザインを統一。 / Re-applied white tint for a unified design across all buttons.
 
 ### v1.2.13 (2026-05-08)
 - **ジェスチャー操作の改善 / Gesture Responsiveness Improvements**:
