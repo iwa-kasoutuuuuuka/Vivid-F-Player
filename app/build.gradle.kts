@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.videoplayer"
         minSdk = 26
         targetSdk = 34
-        versionCode = 14
-        versionName = "1.2.13"
+        versionCode = 15
+        versionName = "1.2.14"
     }
 
     buildFeatures {
