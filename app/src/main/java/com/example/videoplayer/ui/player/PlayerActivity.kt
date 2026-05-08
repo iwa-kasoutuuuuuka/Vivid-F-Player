@@ -24,6 +24,9 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.videoplayer.R
 import com.example.videoplayer.data.manager.ResumeManager
 import com.example.videoplayer.data.model.VideoFile
@@ -66,6 +69,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -267,15 +271,6 @@ class PlayerActivity : AppCompatActivity() {
             if (isLocked) return@setOnClickListener
             cycleABLoop()
         }
-        
-        // Bonus: Aspect Ratio Toggle
-        binding.playerView.setOnClickListener {
-            if (isLocked) {
-                toggleLock() // Easy unlock on click? No, maybe just show controls
-            } else {
-                if (binding.controlsLayout.visibility == View.VISIBLE) hideControls() else showControls()
-            }
-        }
     }
 
     private fun toggleLock() {
@@ -384,15 +379,33 @@ class PlayerActivity : AppCompatActivity() {
     private fun showControls() {
         binding.controlsLayout.visibility = View.VISIBLE
         binding.bottomControls.visibility = View.VISIBLE
+        showSystemBars()
         hideHandler.removeCallbacks(hideRunnable)
-        if (!isLocked) {
-            hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
-        }
+        hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
     }
 
     private fun hideControls() {
         binding.controlsLayout.visibility = View.GONE
         binding.bottomControls.visibility = View.GONE
+        hideSystemBars()
+    }
+
+    private fun hideSystemBars() {
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+    }
+
+    private fun showSystemBars() {
+        val windowInsetsController = WindowCompat.getInsetsController(window, window.decorView)
+        windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && binding.controlsLayout.visibility == View.GONE) {
+            hideSystemBars()
+        }
     }
 
     private fun setupGestures() {
@@ -441,12 +454,6 @@ class PlayerActivity : AppCompatActivity() {
         })
 
         binding.playerView.setOnTouchListener { v, event ->
-            if (isLocked) {
-                if (event.action == MotionEvent.ACTION_DOWN && binding.controlsLayout.visibility != View.VISIBLE) {
-                    showControls()
-                }
-                return@setOnTouchListener false
-            }
             gestureDetector.onTouchEvent(event)
             if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
                 if (isFastForwarding) stopFastForward()
@@ -454,7 +461,6 @@ class PlayerActivity : AppCompatActivity() {
                     hideHandler.postDelayed({ binding.indicatorLayout.visibility = View.GONE }, 1000)
                 }
             }
-            v.performClick()
             true
         }
     }
