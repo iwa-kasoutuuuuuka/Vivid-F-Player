@@ -59,6 +59,9 @@ class PlayerActivity : AppCompatActivity() {
     private var isLocked = false
     private var isFastForwarding = false
     private var originalSpeed = 1.0f
+    
+    private var initialVolume: Int = 0
+    private var initialBrightness: Float = 0f
 
     private var abLoopA: Long = -1L
     private var abLoopB: Long = -1L
@@ -410,27 +413,39 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setupGestures() {
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean {
+                // スクロール開始時の値を記憶して安定させる
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                initialVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                initialBrightness = window.attributes.screenBrightness
+                if (initialBrightness < 0) initialBrightness = 0.5f // システムデフォルトの場合の暫定値
+                return true
+            }
+
             override fun onScroll(e1: MotionEvent?, e2: MotionEvent, distanceX: Float, distanceY: Float): Boolean {
-                if (isLocked) return false
-                val deltaY = (e1?.y ?: 0f) - e2.y
-                val screenWidth = binding.playerView.width
+                if (isLocked || e1 == null) return false
+                
+                // 開始点(e1)からの累積移動距離を使用
+                val deltaY = e1.y - e2.y
+                val height = binding.playerView.height.toFloat()
+                val screenWidth = binding.playerView.width.toFloat()
+                
                 if (e2.x < screenWidth / 2) {
-                    // Brightness
+                    // 左側: 輝度調整 (画面の高さ分スワイプで 0.0 -> 1.0)
+                    val brightnessDelta = deltaY / height
+                    val newBrightness = (initialBrightness + brightnessDelta).coerceIn(0.01f, 1.0f)
                     val lp = window.attributes
-                    lp.screenBrightness = (lp.screenBrightness + deltaY / 1000).coerceIn(0.01f, 1.0f)
+                    lp.screenBrightness = newBrightness
                     window.attributes = lp
-                    showIndicator(R.drawable.ic_brightness, (lp.screenBrightness * 100).toInt())
+                    showIndicator(R.drawable.ic_brightness, (newBrightness * 100).toInt())
                 } else {
-                    // Volume
+                    // 右側: 音量調整 (画面の高さ分スワイプで 0 -> MaxVolume)
                     val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
                     val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                    val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    val deltaVol = (deltaY / 500).toInt()
-                    if (deltaVol != 0) {
-                        val newVolume = (currentVolume + (if (deltaVol > 0) 1 else -1)).coerceIn(0, maxVolume)
-                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
-                        showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt())
-                    }
+                    val volumeDelta = ((deltaY / height) * maxVolume).toInt()
+                    val newVolume = (initialVolume + volumeDelta).coerceIn(0, maxVolume)
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
+                    showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt())
                 }
                 return true
             }
