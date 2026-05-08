@@ -278,7 +278,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun toggleLock() {
         isLocked = !isLocked
-        binding.btnLock.setImageResource(if (isLocked) R.drawable.ic_lock else R.drawable.ic_lock_open)
+        binding.btnLock.setImageResource(if (isLocked) R.drawable.ic_lock_v_closed else R.drawable.ic_lock_v)
         if (isLocked) {
             hideControls()
             android.widget.Toast.makeText(this, "Screen Locked", android.widget.Toast.LENGTH_SHORT).show()
