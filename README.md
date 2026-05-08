@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.10
+- **Current Version**: v1.2.11
 - **Latest Build**: `app-debug.apk` (Check Releases)
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -85,6 +85,16 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.11 (2026-05-08)
+- **イマーシブモード（フルスクリーン）の対応 / Immersive Mode Support**:
+  * 動画再生中にナビゲーションバーとステータスバーを自動的に非表示にする機能を追加。 / Automatically hide navigation and status bars during playback.
+  * 画面端からのスワイプで一時的にシステムバーを表示可能。 / System bars can be shown temporarily by swiping from the edge.
+- **UI表示バグの修正 / UI Visibility Fixes**:
+  * タップ時にコントロールボタンが表示されない（二重トグル）不具合を修正。 / Fixed bug where control buttons wouldn't show due to double-toggling.
+  * 再生・一時停止ボタン等に明示的なホワイトカラーのティントを適用し、視認性を向上。 / Applied explicit white tints to player buttons for better visibility.
+  * 画面ロック中にタップしても即座にロック解除されないようロジックを改善。 / Improved lock logic to prevent accidental unlocking.
+
 
 ### v1.2.7 (2026-04-25)
 - **YouTube風操作の追加 / YouTube-style Gestures**:
