@@ -90,6 +90,7 @@ class PlayerActivity : AppCompatActivity() {
         handleIntent()
         setupControls()
         setupGestures()
+        setupPlaybackButtonAnimations()
         
         playerManager.player.addListener(playerListener)
     }
@@ -109,6 +110,23 @@ class PlayerActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             viewModel.stopPlaybackEvent.collect { finish() }
+        }
+    }
+
+    private fun setupPlaybackButtonAnimations() {
+        val buttons = listOf(binding.btnPlayPause, binding.btnNext, binding.btnPrevious)
+        buttons.forEach { button ->
+            button.setOnTouchListener { v, event ->
+                when (event.action) {
+                    android.view.MotionEvent.ACTION_DOWN -> {
+                        v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).start()
+                    }
+                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                        v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
+                    }
+                }
+                false
+            }
         }
     }
 
