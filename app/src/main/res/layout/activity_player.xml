@@ -46,14 +46,16 @@
             android:id="@+id/btn_subtitles"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_subtitles"
+            android:src="@drawable/ic_subtitles_v"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageButton
             android:id="@+id/btn_lock"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_lock_open"
+            android:src="@drawable/ic_lock_v"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageButton
@@ -120,7 +122,8 @@
             android:id="@+id/btn_aspect_ratio"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_aspect_ratio"
+            android:src="@drawable/ic_aspect_ratio_v"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <ImageButton
@@ -155,7 +158,8 @@
             android:id="@+id/btn_ab_loop"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/ic_loop"
+            android:src="@drawable/ic_loop_v"
+            app:tint="#FFFFFF"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
     </LinearLayout>
