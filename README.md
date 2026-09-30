@@ -5,7 +5,7 @@ A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
 - **Current Version**: v1.2.18
-- **Latest Build**: `app-debug.apk` (Check Releases)
+- **Latest Build**: [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) ([直接ダウンロード / Direct Download](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk))
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
 Simply configure folders within your Android device (including SD cards) or SMB shares (NAS) and play video files continuously in filename order.
@@ -105,6 +105,7 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
   * 最後のファイルの再生が終わった状態でアプリを離れるとクラッシュする問題を修正（バックグラウンド再生ON時）。 / Fixed a crash when leaving the app after the last file finished playing with Background Playback enabled.
   * SMBフォルダ追加ダイアログで日本語キーボードの全角/かな入力によりアドレスが壊れる問題を修正。 / Fixed the SMB dialog accepting full-width/kana input from Japanese keyboards, which broke addresses.
 - **動作確認 / Verified**: ローカルのSMBサーバーを使い、一覧取得・ストリーミング再生・字幕・連続再生・誤ったパスワード時の動作を確認。 / Tested listing, streaming, subtitles, continuous playback and wrong-password handling against a local SMB server.
+- **最新APK提供 / Latest APK**: リポジトリ内に最新ビルド `app-debug.apk` を同梱・更新。 / Bundled latest `app-debug.apk` in the repository for direct download.
 
 ### v1.2.17 (2026-09-30)
 - **ピクチャー・イン・ピクチャー (PiP) の実装 / Picture-in-Picture Implemented**:
