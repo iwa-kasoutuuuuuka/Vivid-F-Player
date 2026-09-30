@@ -108,6 +108,8 @@ object PlayerHolder {
         return mediaSession!!
     }
 
+    fun currentMediaSession(): MediaSession? = mediaSession
+
     fun release() {
         mediaSession?.release()
         mediaSession = null

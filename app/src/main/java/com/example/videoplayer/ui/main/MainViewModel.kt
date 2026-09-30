@@ -32,7 +32,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isBackgroundPlayEnabled = MutableStateFlow(prefs.getBoolean("bg_play", false))
     val isBackgroundPlayEnabled: StateFlow<Boolean> = _isBackgroundPlayEnabled
 
-    private val _playbackSpeed = MutableStateFlow(prefs.getFloat("playback_speed", 1.0f))
+    private val _isAutoPipEnabled = MutableStateFlow(prefs.getBoolean("auto_pip", true))
+    val isAutoPipEnabled: StateFlow<Boolean> = _isAutoPipEnabled
+
+    private val _playbackSpeed =MutableStateFlow(prefs.getFloat("playback_speed", 1.0f))
     val playbackSpeed: StateFlow<Float> = _playbackSpeed
 
     private val _repeatMode = MutableStateFlow(prefs.getInt("repeat_mode", Player.REPEAT_MODE_OFF))
@@ -90,6 +93,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setBackgroundPlayEnabled(enabled: Boolean) {
         _isBackgroundPlayEnabled.value = enabled
         prefs.edit().putBoolean("bg_play", enabled).apply()
+    }
+
+    fun setAutoPipEnabled(enabled: Boolean) {
+        _isAutoPipEnabled.value = enabled
+        prefs.edit().putBoolean("auto_pip", enabled).apply()
     }
 
     fun setPlaybackSpeed(speed: Float) {

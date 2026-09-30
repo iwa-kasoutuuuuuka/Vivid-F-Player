@@ -4,6 +4,12 @@
     <string name="settings_title">設定 / Settings</string>
     <string name="playback_speed">再生速度 / Playback Speed</string>
     <string name="background_play">バックグラウンド再生 / Background Playback</string>
+    <string name="auto_pip">ホームでPiP表示 / Picture-in-Picture on Home</string>
+    <string name="pip">ピクチャー・イン・ピクチャー / Picture-in-Picture</string>
+    <string name="pip_play_pause">再生/一時停止 / Play/Pause</string>
+    <string name="pip_next">次へ / Next</string>
+    <string name="pip_previous">前へ / Previous</string>
+    <string name="pip_not_supported">この端末はPiPに対応していません / Picture-in-Picture is not supported on this device</string>
     <string name="repeat_mode">リピートモード / Repeat Mode</string>
     <string name="shuffle_play">シャッフル再生 / Shuffle Play</string>
     <string name="manage_folders">登録済みフォルダの管理 / Manage Folders</string>

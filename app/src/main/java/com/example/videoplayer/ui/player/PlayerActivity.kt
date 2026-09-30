@@ -1,8 +1,14 @@
 package com.example.videoplayer.ui.player
 
+import android.app.PendingIntent
 import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.graphics.drawable.Icon
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.net.Uri
@@ -41,6 +47,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class PlayerActivity : AppCompatActivity() {
+    companion object {
+        private const val ACTION_PIP_CONTROL = "com.example.videoplayer.PIP_CONTROL"
+        private const val EXTRA_PIP_CONTROL = "control"
+        private const val PIP_CONTROL_PLAY_PAUSE = 1
+        private const val PIP_CONTROL_NEXT = 2
+        private const val PIP_CONTROL_PREVIOUS = 3
+    }
+
     private lateinit var binding: ActivityPlayerBinding
     private val viewModel: MainViewModel by viewModels()
     private lateinit var playerManager: PlayerManager
@@ -51,6 +65,9 @@ class PlayerActivity : AppCompatActivity() {
     private var currentFileName: String? = null
     private var currentVideoUri: Uri? = null
     private var isBackgroundPlayEnabled: Boolean = false
+    private var repeatMode: Int = Player.REPEAT_MODE_OFF
+    private var isShuffleEnabled: Boolean = false
+    private var isAutoPipEnabled: Boolean = true
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideRunnable = Runnable { hideControls() }
     private val HIDE_DELAY = 3000L
@@ -86,6 +103,7 @@ class PlayerActivity : AppCompatActivity() {
         binding.playerView.useController = false
         binding.playerView.keepScreenOn = true
 
+        applySystemBarInsets()
         setupSettingsObservers()
         handleIntent()
         setupControls()
@@ -93,6 +111,27 @@ class PlayerActivity : AppCompatActivity() {
         setupPlaybackButtonAnimations()
         
         playerManager.player.addListener(playerListener)
+        androidx.core.content.ContextCompat.registerReceiver(
+            this, pipActionReceiver, IntentFilter(ACTION_PIP_CONTROL),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+        // 起動直後に表示されているコントロールも自動で隠す / Auto-hide the controls shown at launch too
+        hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
+    }
+
+    // エッジツーエッジ表示でステータスバー/ナビゲーションバーにコントロールが重ならないようにする
+    // Keep the top/bottom bars clear of the status/navigation bars in edge-to-edge mode
+    private fun applySystemBarInsets() {
+        val top = binding.controlsLayout
+        val bottom = binding.bottomControls
+        val topPad = intArrayOf(top.paddingLeft, top.paddingTop, top.paddingRight)
+        val bottomPad = intArrayOf(bottom.paddingLeft, bottom.paddingRight, bottom.paddingBottom)
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            top.setPadding(topPad[0] + bars.left, topPad[1] + bars.top, topPad[2] + bars.right, top.paddingBottom)
+            bottom.setPadding(bottomPad[0] + bars.left, bottom.paddingTop, bottomPad[1] + bars.right, bottomPad[2] + bars.bottom)
+            insets
+        }
     }
 
     private fun setupSettingsObservers() {
@@ -103,10 +142,22 @@ class PlayerActivity : AppCompatActivity() {
             viewModel.isBackgroundPlayEnabled.collect { isBackgroundPlayEnabled = it }
         }
         lifecycleScope.launch {
-            viewModel.repeatMode.collect { playerManager.player.repeatMode = it }
+            viewModel.isAutoPipEnabled.collect {
+                isAutoPipEnabled = it
+                updatePipParams()
+            }
+        }
+        // プレイヤーには1ファイルずつ渡すため、全曲リピート/シャッフルはplayNext()で処理する
+        // The player holds one item at a time, so repeat-all/shuffle are handled in playNext()
+        lifecycleScope.launch {
+            viewModel.repeatMode.collect {
+                repeatMode = it
+                playerManager.player.repeatMode =
+                    if (it == Player.REPEAT_MODE_ONE) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+            }
         }
         lifecycleScope.launch {
-            viewModel.shuffleModeEnabled.collect { playerManager.player.shuffleModeEnabled = it }
+            viewModel.shuffleModeEnabled.collect { isShuffleEnabled = it }
         }
         lifecycleScope.launch {
             viewModel.stopPlaybackEvent.collect { finish() }
@@ -163,12 +214,18 @@ class PlayerActivity : AppCompatActivity() {
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playbackState == Player.STATE_ENDED) {
+                saveCurrentPosition()
                 playNext()
             }
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             updatePlayPauseIcon(isPlaying)
+            updatePipParams()
+        }
+
+        override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
+            updatePipParams()
         }
 
         override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
@@ -205,7 +262,11 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playVideo(index: Int) {
         if (index < 0 || index >= videoList.size) return
-        
+
+        // 切り替え前に現在の動画の位置を保存（バックグラウンド連続再生でもレジュームを維持）
+        // Save the outgoing video's position so resume survives continuous background playback
+        if (currentIndex != index) saveCurrentPosition()
+
         val video = videoList[index]
         currentIndex = index
         currentVideoUri = video.uri
@@ -218,7 +279,10 @@ class PlayerActivity : AppCompatActivity() {
                 videoRepository.getSubtitleFiles(folder, video.name).map { createSubtitleConfig(it) }
             } else emptyList()
 
-            val position = resumeManager.getFileResumePosition(video.uri.toString())
+            val savedPosition = resumeManager.getFileResumePosition(video.uri.toString())
+            val savedDuration = resumeManager.getFileDuration(video.uri.toString())
+            // 視聴済み（終端付近）の動画は先頭から / Restart videos that were watched to the end
+            val position = if (savedDuration > 0 && savedPosition >= savedDuration - 3000) 0L else savedPosition
             playerManager.play(video, subtitleConfigs, position)
             updateFileNameDisplay()
             
@@ -259,6 +323,11 @@ class PlayerActivity : AppCompatActivity() {
             toggleLock()
         }
 
+        binding.btnPip.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            enterPip()
+        }
+
         binding.btnSettings.setOnClickListener {
             if (isLocked) return@setOnClickListener
             SettingsBottomSheet().show(supportFragmentManager, "settings")
@@ -297,6 +366,7 @@ class PlayerActivity : AppCompatActivity() {
     private fun toggleLock() {
         isLocked = !isLocked
         binding.btnLock.setImageResource(if (isLocked) R.drawable.ic_lock_v_closed else R.drawable.ic_lock_v)
+        updatePipParams()
         if (isLocked) {
             hideControls()
             android.widget.Toast.makeText(this, "Screen Locked", android.widget.Toast.LENGTH_SHORT).show()
@@ -314,8 +384,15 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playNext() {
         if (videoList.isEmpty()) return
-        if (currentIndex < videoList.size - 1) {
-            playVideo(currentIndex + 1)
+        val next = when {
+            isShuffleEnabled && videoList.size > 1 ->
+                videoList.indices.filter { it != currentIndex }.random()
+            currentIndex < videoList.size - 1 -> currentIndex + 1
+            repeatMode == Player.REPEAT_MODE_ALL -> 0
+            else -> -1
+        }
+        if (next >= 0) {
+            playVideo(next)
         } else {
             android.widget.Toast.makeText(this, getString(R.string.last_file), android.widget.Toast.LENGTH_SHORT).show()
         }
@@ -324,6 +401,8 @@ class PlayerActivity : AppCompatActivity() {
     private fun playPrevious() {
         if (currentIndex > 0) {
             playVideo(currentIndex - 1)
+        } else if (repeatMode == Player.REPEAT_MODE_ALL && videoList.isNotEmpty()) {
+            playVideo(videoList.size - 1)
         } else {
             android.widget.Toast.makeText(this, getString(R.string.first_file), android.widget.Toast.LENGTH_SHORT).show()
         }
@@ -350,7 +429,7 @@ class PlayerActivity : AppCompatActivity() {
             AspectRatioFrameLayout.RESIZE_MODE_FIXED_HEIGHT -> "Fixed Height"
             else -> "Fit"
         }
-        showIndicator(R.drawable.ic_aspect_ratio, -1, modeText)
+        showIndicator(R.drawable.ic_aspect_ratio_v, -1, modeText)
     }
 
     private fun cycleABLoop() {
@@ -359,13 +438,13 @@ class PlayerActivity : AppCompatActivity() {
             ABLoopState.OFF -> {
                 abLoopA = currentPos
                 abLoopState = ABLoopState.SET_A
-                showIndicator(R.drawable.ic_loop, -1, "A: ${formatTime(abLoopA)}")
+                showIndicator(R.drawable.ic_loop_v, -1, "A: ${formatTime(abLoopA)}")
             }
             ABLoopState.SET_A -> {
                 if (currentPos > abLoopA) {
                     abLoopB = currentPos
                     abLoopState = ABLoopState.SET_B
-                    showIndicator(R.drawable.ic_loop, -1, "B: ${formatTime(abLoopB)} (Loop ON)")
+                    showIndicator(R.drawable.ic_loop_v, -1, "B: ${formatTime(abLoopB)} (Loop ON)")
                 } else {
                     android.widget.Toast.makeText(this, "B must be after A", android.widget.Toast.LENGTH_SHORT).show()
                 }
@@ -374,7 +453,7 @@ class PlayerActivity : AppCompatActivity() {
                 abLoopA = -1L
                 abLoopB = -1L
                 abLoopState = ABLoopState.OFF
-                showIndicator(R.drawable.ic_loop, -1, "Loop OFF")
+                showIndicator(R.drawable.ic_loop_v, -1, "Loop OFF")
             }
         }
         updateABLoopButtonUI()
@@ -529,6 +608,91 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    // ---- ピクチャー・イン・ピクチャー / Picture-in-Picture ----
+
+    private val hasPipFeature by lazy {
+        packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    }
+
+    // PiPウィンドウのボタン（前へ/再生・一時停止/次へ）からのブロードキャストを受ける
+    // Receives taps on the PiP window's Previous / Play-Pause / Next buttons
+    private val pipActionReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.getIntExtra(EXTRA_PIP_CONTROL, 0)) {
+                PIP_CONTROL_PLAY_PAUSE ->
+                    if (playerManager.player.isPlaying) playerManager.player.pause() else playerManager.player.play()
+                PIP_CONTROL_NEXT -> playNext()
+                PIP_CONTROL_PREVIOUS -> playPrevious()
+            }
+        }
+    }
+
+    private fun pipAction(control: Int, iconRes: Int, titleRes: Int): RemoteAction {
+        val intent = Intent(ACTION_PIP_CONTROL).setPackage(packageName).putExtra(EXTRA_PIP_CONTROL, control)
+        val pendingIntent = PendingIntent.getBroadcast(this, control, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val title = getString(titleRes)
+        return RemoteAction(Icon.createWithResource(this, iconRes), title, title, pendingIntent)
+    }
+
+    private fun buildPipParams(): PictureInPictureParams {
+        val builder = PictureInPictureParams.Builder()
+        val size = playerManager.player.videoSize
+        if (size.width > 0 && size.height > 0) {
+            // PiPのアスペクト比は 1:2.39〜2.39:1 の範囲でないと例外になる
+            // PiP rejects aspect ratios outside 1:2.39 .. 2.39:1
+            val ratio = (size.width * size.pixelWidthHeightRatio / size.height).coerceIn(1 / 2.39f, 2.39f)
+            builder.setAspectRatio(Rational((ratio * 1000).toInt(), 1000))
+        }
+        val isPlaying = playerManager.player.isPlaying
+        builder.setActions(listOf(
+            pipAction(PIP_CONTROL_PREVIOUS, R.drawable.ic_previous, R.string.pip_previous),
+            pipAction(PIP_CONTROL_PLAY_PAUSE, if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play, R.string.pip_play_pause),
+            pipAction(PIP_CONTROL_NEXT, R.drawable.ic_next, R.string.pip_next)
+        ))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Android 12以降: 再生中にホームへ戻ると自動でスムーズにPiPへ移行
+            // Android 12+: seamlessly auto-enter PiP when going Home while playing
+            builder.setAutoEnterEnabled(isAutoPipEnabled && isPlaying && !isLocked)
+        }
+        return builder.build()
+    }
+
+    private fun updatePipParams() {
+        if (!hasPipFeature || !::playerManager.isInitialized) return
+        setPictureInPictureParams(buildPipParams())
+    }
+
+    private fun enterPip() {
+        if (!hasPipFeature) {
+            android.widget.Toast.makeText(this, R.string.pip_not_supported, android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        hideControls()
+        enterPictureInPictureMode(buildPipParams())
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        // Android 11以前は自動移行がないため、ここで手動でPiPに入る
+        // Android 11 and below have no auto-enter, so enter PiP manually here
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && hasPipFeature &&
+            isAutoPipEnabled && playerManager.player.isPlaying && !isLocked) {
+            enterPip()
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        if (isInPictureInPictureMode) {
+            // PiP中は小窓なのでオーバーレイ類をすべて隠す / Hide all overlays in the small PiP window
+            hideHandler.removeCallbacks(hideRunnable)
+            hideControls()
+            binding.indicatorLayout.visibility = View.GONE
+            binding.tvSpeedIndicator.visibility = View.GONE
+            (supportFragmentManager.findFragmentByTag("settings") as? SettingsBottomSheet)?.dismissAllowingStateLoss()
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         binding.playerView.player = playerManager.player
@@ -538,7 +702,14 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         abLoopHandler.removeCallbacks(abLoopRunnable)
-        if (isBackgroundPlayEnabled || isInPictureInPictureMode) {
+        // 戻るボタン/おやすみタイマーで終了する場合はバックグラウンド再生しない
+        // Don't keep playing when the user (or the sleep timer) is closing the player
+        // PiP中のonStopは「PiPウィンドウが閉じられた」ことを意味するので、PiPを理由に再生継続しない
+        // onStop while in PiP means the PiP window was dismissed, so PiP alone is no reason to keep playing
+        val keepPlaying = !isFinishing && isBackgroundPlayEnabled
+        // MediaSessionServiceは再生中でないとstartForeground()しないため、停止中に起動するとクラッシュする
+        // MediaSessionService only calls startForeground() while playing; starting it while paused crashes
+        if (keepPlaying && playerManager.player.playWhenReady) {
             val intent = Intent(this, PlaybackService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
         } else {
@@ -550,21 +721,24 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        folderUri?.let { uri ->
-            currentFileName?.let { fileName ->
-                val duration = playerManager.player.duration
-                if (duration > 0) {
-                    resumeManager.saveResumePosition(uri, fileName, currentVideoUri.toString(), playerManager.player.currentPosition, duration)
-                } else {
-                    resumeManager.saveResumePosition(uri, fileName, currentVideoUri.toString(), playerManager.player.currentPosition, 0)
-                }
-            }
-        }
+        saveCurrentPosition()
+    }
+
+    private fun saveCurrentPosition() {
+        val uri = folderUri ?: return
+        val fileName = currentFileName ?: return
+        val videoUri = currentVideoUri ?: return
+        val duration = playerManager.player.duration.takeIf { it > 0 } ?: 0L
+        resumeManager.saveResumePosition(uri, fileName, videoUri.toString(), playerManager.player.currentPosition, duration)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         playerManager.player.removeListener(playerListener)
-        if (!isBackgroundPlayEnabled) playerManager.release()
+        unregisterReceiver(pipActionReceiver)
+        if (isFinishing || !isBackgroundPlayEnabled) {
+            stopService(Intent(this, PlaybackService::class.java))
+            playerManager.release()
+        }
     }
 }

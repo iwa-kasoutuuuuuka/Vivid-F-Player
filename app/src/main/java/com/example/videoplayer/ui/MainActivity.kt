@@ -66,7 +66,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun navigateToFileList(uri: Uri) {
-        viewModel.setFolder(uri)
+        // FileListFragment側でsetFolder()するため、ここでは読み込まない（SMBで二重列挙になる）
+        // FileListFragment loads the folder itself; loading here too listed SMB shares twice
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, FileListFragment.newInstance(uri))
             .addToBackStack(null)

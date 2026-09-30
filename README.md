@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.16
+- **Current Version**: v1.2.17
 - **Latest Build**: `app-debug.apk` (Check Releases)
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -27,7 +27,7 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 - **📄 字幕サポート / Subtitle Support**: 同一ファイル名の字幕（.srt, .ass, .vtt）の自動読み込みと手動選択。 / Auto-loading and manual selection of subtitles.
 - **🌙 Vividデザイン / Vivid Design**: グラスモーフィズムを採用したモダンなUIと、リストでの再生進捗表示。 / Modern glassmorphism UI with progress indicators in lists.
 - **🎵 バックグラウンド再生 / Background Play**: 画面オフや他アプリ使用中でも音声再生を継続。 / Continuous audio playback in the background.
-- 📺 **ピクチャー・イン・ピクチャー (PiP) / Picture-in-Picture**: 他のアプリを使いながら動画を視聴。 / Watch videos while using other apps.
+- 📺 **ピクチャー・イン・ピクチャー (PiP) / Picture-in-Picture**: 再生中にホームへ戻ると自動で小窓表示（設定でON/OFF）。上部バーのPiPボタンからも移行でき、小窓から前へ/再生・一時停止/次へを操作可能。 / Auto-enters a floating window when you go Home during playback (toggle in Settings), or via the PiP button; the window offers Previous / Play-Pause / Next.
 - 🖐️ **ジェスチャーコントロール / Gesture Control**: 明るさ、音量、シークを直感的に操作。 / Intuitively control brightness, volume, and seeking.
 - ⚡ **再生速度変更 / Playback Speed Control**: 0.5xから2.0xまで調整可能。 / Adjustable from 0.5x to 2.0x.
 - 🔖 **レジューム再生 / Resume Playback**: 続きから再生。 / Resume from where you left off.
@@ -35,7 +35,7 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 ## 📁 フォルダ構成 / Directory Structure
 
 ```text
-f:/app/Android/
+Vivid-F-Player/
 ├── app/
 │   ├── src/
 │   │   ├── main/
@@ -55,6 +55,14 @@ f:/app/Android/
 1. Android Studio を開き、本プロジェクトをインポートします。 / Open Android Studio and import this project.
 2. プロジェクト同期（Gradle Sync）を完了させます。 / Complete Gradle Sync.
 3. `Run` ボタンを押して実機またはエミュレータで実行します。 / Press the `Run` button to execute on a device or emulator.
+
+コマンドラインでビルドする場合（JDK 17 が必要） / To build from the command line (requires JDK 17):
+
+```bash
+./gradlew assembleDebug   # Windows: gradlew.bat assembleDebug
+```
+
+APK は `app/build/outputs/apk/debug/app-debug.apk` に出力されます。 / The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
 
 ## 🔋 バックグラウンド再生の安定化について / Background Playback Stability
 
@@ -85,6 +93,32 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.17 (2026-09-30)
+- **ピクチャー・イン・ピクチャー (PiP) の実装 / Picture-in-Picture Implemented**:
+  * 再生中にホームへ戻ると自動でPiPに移行（Android 12以降はスムーズな自動移行）。設定の「ホームでPiP表示」でON/OFF可能。 / Auto-enters PiP when going Home during playback (seamless on Android 12+); toggle via "Picture-in-Picture on Home" in Settings.
+  * 上部バーにPiPボタンを追加。PiPウィンドウから前へ/再生・一時停止/次へを操作可能。 / Added a PiP button to the top bar; the PiP window has Previous / Play-Pause / Next controls.
+  * PiPウィンドウを閉じた時は、バックグラウンド再生がOFFなら一時停止。 / Closing the PiP window pauses playback unless Background Playback is enabled.
+- **ビルドエラーの修正 / Build Fix**:
+  * v1.2.14 のアイコン差し替えで残っていた古いリソース参照（`ic_loop`, `ic_aspect_ratio`）を修正し、ビルドできない状態を解消。 / Fixed stale icon references left over from v1.2.14 that prevented the project from compiling.
+- **連続再生・リピートの修正 / Continuous Playback & Repeat Fixes**:
+  * リピート「ALL」で同じ動画がループし続け、次のファイルへ進まない不具合を修正。フォルダ末尾から先頭へ戻るように。 / Fixed "Repeat ALL" looping the current video forever; it now wraps from the last file back to the first.
+  * シャッフル再生がフォルダ内のファイル間で機能するように修正。 / Shuffle now actually picks random files within the folder.
+- **バックグラウンド再生の安定化 / Background Playback Stability**:
+  * MediaSessionをサービスに登録し、フォアグラウンド通知が確実に表示されるように修正（通知が出ずにサービスが強制終了される問題を解消）。 / Registered the MediaSession with the service so the foreground notification is always posted.
+  * 一時停止中にホームへ戻った際のクラッシュを修正。 / Fixed a crash when leaving the app while paused with Background Playback enabled.
+  * 戻るボタン/おやすみタイマーで再生画面を閉じた場合は、バックグラウンド再生ONでも再生を停止するように変更。 / Closing the player (Back button / sleep timer) now stops playback even with Background Playback enabled.
+  * 設定変更後に再生画面へ戻るとプレイヤーが解放されていて再生できない不具合を修正。 / Fixed the player being released under a still-open player screen.
+- **レジューム再生の改善 / Resume Improvements**:
+  * 動画の切り替え時にも再生位置を保存し、長時間の連続再生後も正しく「続きから」再生できるように。 / Position is now saved on every track change, so resume works after long continuous sessions.
+  * 最後まで視聴した動画は先頭から再生。 / Fully watched videos restart from the beginning.
+  * 再生画面から戻った時に、一覧の進捗バーと「前回の続き」カードを更新。 / Progress bars and the "last played" card refresh when returning from the player.
+- **UI修正 / UI Fixes**:
+  * 再生画面のタイトルがステータスバーに重なり、再生ボタンが画面下で切れる問題を修正。 / Fixed the title overlapping the status bar and the play button being clipped at the bottom.
+  * 再生開始直後のコントロールも3秒後に自動で隠れるように。 / Controls shown at launch now auto-hide after 3 seconds.
+- **SMB / その他 / SMB & Misc**:
+  * パスワード等に `@ : / #` を含むSMB認証情報でURLが壊れる問題を修正。 / Fixed SMB credentials containing `@ : / #` breaking the share URL.
+  * Gradle Wrapper を追加し、コミットされていたビルド成果物 (`app/build`) を管理対象から除外。 / Added the Gradle Wrapper and stopped tracking the committed `app/build` output.
 
 ### v1.2.16 (2026-05-08)
 - **ボタン操作の反応性向上 / Improved Button Responsiveness**:

@@ -81,6 +81,13 @@ class FileListFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // 再生画面から戻った時に進捗バーを更新（リスト内容は同じなのでDiffUtilでは再描画されない）
+        // Refresh progress bars after returning from the player; DiffUtil sees identical items and skips rebinding
+        if (::adapter.isInitialized) adapter.notifyDataSetChanged()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

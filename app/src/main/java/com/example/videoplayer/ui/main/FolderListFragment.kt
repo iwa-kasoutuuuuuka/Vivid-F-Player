@@ -58,8 +58,6 @@ class FolderListFragment : Fragment() {
                 }
             }
         }
-        
-        setupQuickResume()
 
         binding.btnAddFolder.setOnClickListener {
             selectFolderLauncher.launch(null)
@@ -84,8 +82,12 @@ class FolderListFragment : Fragment() {
 
             if (server.isNotEmpty() && share.isNotEmpty()) {
                 // smb://[user:password@]host/share/
+                // @ : / # などを含む認証情報でURLが壊れないようエンコード（jcifsがデコードする。";"はドメイン区切りなので残す）
+                // Encode credentials so @ : / # don't break the URL (jcifs decodes them; keep ";" as the domain separator)
+                val encUser = Uri.encode(user, ";")
+                val encPass = Uri.encode(pass)
                 val userInfo = if (user.isNotEmpty()) {
-                    if (pass.isNotEmpty()) "$user:$pass@" else "$user@"
+                    if (pass.isNotEmpty()) "$encUser:$encPass@" else "$encUser@"
                 } else ""
                 
                 val smbUrl = "smb://$userInfo$server/$share/"
@@ -123,6 +125,12 @@ class FolderListFragment : Fragment() {
         } else {
             binding.cardLastPlayed.visibility = View.GONE
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 再生画面から戻るたびに「前回の続き」を最新化 / Refresh the "last played" card on every return
+        setupQuickResume()
     }
 
     override fun onDestroyView() {

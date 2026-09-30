@@ -68,6 +68,19 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
             viewModel.setBackgroundPlayEnabled(isChecked)
         }
 
+        // ホームでPiP表示の監視 / Monitor auto Picture-in-Picture setting
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.isAutoPipEnabled.collect { enabled ->
+                    binding.swAutoPip.isChecked = enabled
+                }
+            }
+        }
+
+        binding.swAutoPip.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setAutoPipEnabled(isChecked)
+        }
+
         // リピートモードの監視 / Monitor repeat mode
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {

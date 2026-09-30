@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.10
+# 技術仕様書 (Technical Specifications) - v1.2.17
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -12,7 +12,13 @@ Vivid F Player is an Android video player specialized for watching videos in off
 
 ## バージョン履歴 / Version History
 
-### v1.2.10 (Current)
+### v1.2.17 (Current)
+- **Picture-in-Picture**: `PlayerActivity` builds `PictureInPictureParams` from the video aspect ratio (clamped to 1:2.39–2.39:1) with Previous / Play-Pause / Next `RemoteAction`s delivered via a non-exported broadcast. Android 12+ uses `setAutoEnterEnabled`; older versions enter from `onUserLeaveHint`. Controlled by the `auto_pip` preference.
+- **Playlist logic**: The player holds a single `MediaItem`; repeat-all and shuffle are resolved in `playNext()` / `playPrevious()`. Only `REPEAT_MODE_ONE` is forwarded to ExoPlayer.
+- **Background service**: `PlaybackService` calls `addSession()` in `onCreate` so Media3 posts the foreground notification; it is only started while `playWhenReady` is true, and no longer releases the shared player (the activity owns release).
+- **Resume**: Position is saved on track change, on `STATE_ENDED`, and in `onPause`; positions within 3s of the end restart from 0.
+
+### v1.2.10
 - **Screen Lock**: Added lock button to disable gestures and controls during playback.
 - **Aspect Ratio Control**: Cycle through Fit, Fill, Zoom, Fixed Width, and Fixed Height modes.
 - **AB Loop**: Set A and B points to loop a specific segment of the video.
