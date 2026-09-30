@@ -75,23 +75,18 @@ class FolderListFragment : Fragment() {
             .create()
 
         dialogBinding.btnConnect.setOnClickListener {
-            val server = dialogBinding.etServer.text.toString().trim()
-            val share = dialogBinding.etShare.text.toString().trim()
+            // 全角英数字（日本語IME入力）を半角に正規化 / Normalize full-width characters typed via Japanese IMEs
+            val normalize = { s: String -> java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFKC).trim() }
+            val server = normalize(dialogBinding.etServer.text.toString())
+            val share = normalize(dialogBinding.etShare.text.toString()).replace('\\', '/')
             val user = dialogBinding.etUsername.text.toString().trim()
             val pass = dialogBinding.etPassword.text.toString().trim()
 
             if (server.isNotEmpty() && share.isNotEmpty()) {
-                // smb://[user:password@]host/share/
-                // @ : / # などを含む認証情報でURLが壊れないようエンコード（jcifsがデコードする。";"はドメイン区切りなので残す）
-                // Encode credentials so @ : / # don't break the URL (jcifs decodes them; keep ";" as the domain separator)
-                val encUser = Uri.encode(user, ";")
-                val encPass = Uri.encode(pass)
-                val userInfo = if (user.isNotEmpty()) {
-                    if (pass.isNotEmpty()) "$encUser:$encPass@" else "$encUser@"
-                } else ""
-                
-                val smbUrl = "smb://$userInfo$server/$share/"
-                viewModel.addSmbFolder(smbUrl)
+                // smb://host[:port]/share/ — 認証情報はURLに含めず暗号化して別保存
+                // Credentials stay out of the URL and are stored encrypted separately
+                val smbUrl = "smb://$server/${share.trim('/')}/"
+                viewModel.addSmbFolder(smbUrl, user, pass)
                 dialog.dismiss()
             } else {
                 android.widget.Toast.makeText(requireContext(), R.string.invalid_smb_path, android.widget.Toast.LENGTH_SHORT).show()

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 暗号化済みSMB認証情報は端末のKeystore鍵でしか復号できないためバックアップしない (Android 11以前) -->
+<!-- Encrypted SMB credentials are only decryptable with this device's Keystore key; keep them out of backups (Android 11 and below) -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="smb_credentials.xml" />
+</full-backup-content>

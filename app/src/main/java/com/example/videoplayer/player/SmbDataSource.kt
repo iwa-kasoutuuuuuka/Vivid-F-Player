@@ -6,13 +6,12 @@ import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.TransferListener
-import jcifs.CIFSContext
-import jcifs.context.SingletonContext
+import com.example.videoplayer.data.manager.SmbCredentialStore
 import jcifs.smb.SmbRandomAccessFile
 import java.io.IOException
 
 class SmbDataSource(
-    private val cifsContext: CIFSContext = SingletonContext.getInstance()
+    private val credentialStore: SmbCredentialStore
 ) : BaseDataSource(true) {
 
     private var file: SmbRandomAccessFile? = null
@@ -25,7 +24,8 @@ class SmbDataSource(
         transferInitializing(dataSpec)
 
         try {
-            val smbFile = jcifs.smb.SmbFile(dataSpec.uri.toString(), cifsContext)
+            val url = dataSpec.uri.toString()
+            val smbFile = jcifs.smb.SmbFile(url, credentialStore.contextFor(url))
             file = SmbRandomAccessFile(smbFile, "r")
             
             file?.seek(dataSpec.position)
@@ -92,7 +92,7 @@ class SmbDataSource(
 
     class SmbDataSourceException(cause: IOException) : IOException(cause)
 
-    class Factory : DataSource.Factory {
-        override fun createDataSource(): DataSource = SmbDataSource()
+    class Factory(private val credentialStore: SmbCredentialStore) : DataSource.Factory {
+        override fun createDataSource(): DataSource = SmbDataSource(credentialStore)
     }
 }

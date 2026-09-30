@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.17
+- **Current Version**: v1.2.18
 - **Latest Build**: `app-debug.apk` (Check Releases)
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -23,7 +23,7 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 
 - **🎬 モダンな再生コントロール / Modern Playback**: YouTube風ジェスチャー（長押し2倍速、ダブルタップスキップ）、画面ロック、ABループ機能。 / YouTube-style gestures, Screen Lock, and AB Loop.
 - **📂 マルチフォルダ管理 / Folder Management**: ローカルおよびSMBフォルダを複数登録・管理可能。 / Register multiple local or SMB folders.
-- **🌐 SMBストリーミング / SMB Streaming**: NAS等のSMB共有から直接再生。認証情報も安全に保持。 / Play directly from SMB shares with stable credential handling.
+- **🌐 SMBストリーミング / SMB Streaming**: NAS等のSMB共有から直接再生。認証情報は Android Keystore で暗号化して保存。 / Play directly from SMB shares; credentials are encrypted with the Android Keystore.
 - **📄 字幕サポート / Subtitle Support**: 同一ファイル名の字幕（.srt, .ass, .vtt）の自動読み込みと手動選択。 / Auto-loading and manual selection of subtitles.
 - **🌙 Vividデザイン / Vivid Design**: グラスモーフィズムを採用したモダンなUIと、リストでの再生進捗表示。 / Modern glassmorphism UI with progress indicators in lists.
 - **🎵 バックグラウンド再生 / Background Play**: 画面オフや他アプリ使用中でも音声再生を継続。 / Continuous audio playback in the background.
@@ -93,6 +93,18 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.18 (2026-09-30)
+- **SMB認証情報の暗号化 / Encrypted SMB Credentials**:
+  * パスワードをURLに含めて平文保存していた方式を廃止し、Android Keystore (AES-GCM) で暗号化して保存するように変更。 / Credentials are no longer stored in plaintext inside the share URL; they are encrypted with an Android Keystore AES-GCM key.
+  * 以前のバージョンで登録したSMBフォルダは初回起動時に自動移行（レジューム情報に残っていたパスワードも除去）。 / Folders registered with older versions are migrated automatically on first launch, including scrubbing passwords from resume data.
+  * 暗号化済み認証情報はバックアップ/端末移行の対象外に。 / Encrypted credentials are excluded from backup and device transfer.
+- **設定の即時反映 / Settings Sync**:
+  * 一覧画面で変更した設定（再生速度・リピート・バックグラウンド再生など）が、開いている再生画面にも即座に反映されるように修正。おやすみタイマーもどの画面から設定しても再生を停止するように。 / Settings changed on the list screen now apply immediately to an open player; the sleep timer stops playback no matter which screen it was set from.
+- **バグ修正 / Bug Fixes**:
+  * 最後のファイルの再生が終わった状態でアプリを離れるとクラッシュする問題を修正（バックグラウンド再生ON時）。 / Fixed a crash when leaving the app after the last file finished playing with Background Playback enabled.
+  * SMBフォルダ追加ダイアログで日本語キーボードの全角/かな入力によりアドレスが壊れる問題を修正。 / Fixed the SMB dialog accepting full-width/kana input from Japanese keyboards, which broke addresses.
+- **動作確認 / Verified**: ローカルのSMBサーバーを使い、一覧取得・ストリーミング再生・字幕・連続再生・誤ったパスワード時の動作を確認。 / Tested listing, streaming, subtitles, continuous playback and wrong-password handling against a local SMB server.
 
 ### v1.2.17 (2026-09-30)
 - **ピクチャー・イン・ピクチャー (PiP) の実装 / Picture-in-Picture Implemented**:

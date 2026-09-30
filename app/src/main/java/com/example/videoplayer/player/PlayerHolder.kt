@@ -43,7 +43,9 @@ object PlayerHolder {
 
             // Support for SMB and other protocols
             val baseDataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(appContext)
-            val smbDataSourceFactory = SmbDataSource.Factory()
+            val smbDataSourceFactory = SmbDataSource.Factory(
+                com.example.videoplayer.data.manager.SmbCredentialStore.getInstance(appContext)
+            )
             
             val dataSourceFactory = androidx.media3.datasource.DataSource.Factory {
                 object : androidx.media3.datasource.DataSource {

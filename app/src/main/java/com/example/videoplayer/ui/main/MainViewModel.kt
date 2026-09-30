@@ -4,21 +4,28 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.videoplayer.data.manager.AppSettings
+import com.example.videoplayer.data.manager.SmbCredentialStore
 import com.example.videoplayer.data.model.VideoFile
-import androidx.media3.common.Player
 import com.example.videoplayer.data.repository.CompositeVideoRepository
-import com.example.videoplayer.data.repository.VideoRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = CompositeVideoRepository(application)
     private val prefs = application.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-    
-    private val _stopPlaybackEvent = kotlinx.coroutines.flow.MutableSharedFlow<Unit>()
-    val stopPlaybackEvent = _stopPlaybackEvent.asSharedFlow()
+    private val credentialStore = SmbCredentialStore.getInstance(application)
+
+    // 再生設定はアプリ全体で共有 / Playback settings are shared app-wide
+    private val settings = AppSettings.getInstance(application)
+    val stopPlaybackEvent = settings.stopPlaybackEvent
+    val isBackgroundPlayEnabled = settings.isBackgroundPlayEnabled
+    val isAutoPipEnabled = settings.isAutoPipEnabled
+    val playbackSpeed = settings.playbackSpeed
+    val repeatMode = settings.repeatMode
+    val shuffleModeEnabled = settings.shuffleModeEnabled
+    val sleepTimerMinutes = settings.sleepTimerMinutes
 
     private val _videoFiles = MutableStateFlow<List<VideoFile>>(emptyList())
     val videoFiles: StateFlow<List<VideoFile>> = _videoFiles
@@ -28,26 +35,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _currentFolderUri = MutableStateFlow<Uri?>(null)
     val currentFolderUri: StateFlow<Uri?> = _currentFolderUri
-
-    private val _isBackgroundPlayEnabled = MutableStateFlow(prefs.getBoolean("bg_play", false))
-    val isBackgroundPlayEnabled: StateFlow<Boolean> = _isBackgroundPlayEnabled
-
-    private val _isAutoPipEnabled = MutableStateFlow(prefs.getBoolean("auto_pip", true))
-    val isAutoPipEnabled: StateFlow<Boolean> = _isAutoPipEnabled
-
-    private val _playbackSpeed =MutableStateFlow(prefs.getFloat("playback_speed", 1.0f))
-    val playbackSpeed: StateFlow<Float> = _playbackSpeed
-
-    private val _repeatMode = MutableStateFlow(prefs.getInt("repeat_mode", Player.REPEAT_MODE_OFF))
-    val repeatMode: StateFlow<Int> = _repeatMode
-
-    private val _shuffleModeEnabled = MutableStateFlow(prefs.getBoolean("shuffle_mode", false))
-    val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled
-
-    private val _sleepTimerMinutes = MutableStateFlow(0)
-    val sleepTimerMinutes: StateFlow<Int> = _sleepTimerMinutes
-
-    private var sleepTimerJob: kotlinx.coroutines.Job? = null
 
     init {
         loadFolders()
@@ -65,7 +52,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         loadFolders()
     }
 
-    fun addSmbFolder(url: String) {
+    /**
+     * SMBフォルダを登録。認証情報はURLに含めず、暗号化ストアに保存します。
+     * Registers an SMB folder; credentials are kept out of the URL and saved to the encrypted store.
+     */
+    fun addSmbFolder(url: String, username: String, password: String) {
+        credentialStore.save(url, username, password)
         val currentSet = prefs.getStringSet("folder_uris", emptySet())?.toMutableSet() ?: mutableSetOf()
         currentSet.add(url)
         prefs.edit().putStringSet("folder_uris", currentSet).apply()
@@ -76,6 +68,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val currentSet = prefs.getStringSet("folder_uris", emptySet())?.toMutableSet() ?: mutableSetOf()
         currentSet.remove(uri.toString())
         prefs.edit().putStringSet("folder_uris", currentSet).apply()
+        if (uri.scheme == "smb") credentialStore.remove(uri.toString(), currentSet)
         loadFolders()
     }
 
@@ -90,40 +83,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun setBackgroundPlayEnabled(enabled: Boolean) {
-        _isBackgroundPlayEnabled.value = enabled
-        prefs.edit().putBoolean("bg_play", enabled).apply()
-    }
-
-    fun setAutoPipEnabled(enabled: Boolean) {
-        _isAutoPipEnabled.value = enabled
-        prefs.edit().putBoolean("auto_pip", enabled).apply()
-    }
-
-    fun setPlaybackSpeed(speed: Float) {
-        _playbackSpeed.value = speed
-        prefs.edit().putFloat("playback_speed", speed).apply()
-    }
-
-    fun setRepeatMode(mode: Int) {
-        _repeatMode.value = mode
-        prefs.edit().putInt("repeat_mode", mode).apply()
-    }
-
-    fun setShuffleModeEnabled(enabled: Boolean) {
-        _shuffleModeEnabled.value = enabled
-        prefs.edit().putBoolean("shuffle_mode", enabled).apply()
-    }
-
-    fun setSleepTimer(minutes: Int) {
-        _sleepTimerMinutes.value = minutes
-        sleepTimerJob?.cancel()
-        if (minutes > 0) {
-            sleepTimerJob = viewModelScope.launch {
-                kotlinx.coroutines.delay(minutes * 60 * 1000L)
-                _sleepTimerMinutes.value = 0
-                _stopPlaybackEvent.emit(Unit)
-            }
-        }
-    }
+    fun setBackgroundPlayEnabled(enabled: Boolean) = settings.setBackgroundPlayEnabled(enabled)
+    fun setAutoPipEnabled(enabled: Boolean) = settings.setAutoPipEnabled(enabled)
+    fun setPlaybackSpeed(speed: Float) = settings.setPlaybackSpeed(speed)
+    fun setRepeatMode(mode: Int) = settings.setRepeatMode(mode)
+    fun setShuffleModeEnabled(enabled: Boolean) = settings.setShuffleModeEnabled(enabled)
+    fun setSleepTimer(minutes: Int) = settings.setSleepTimer(minutes)
 }

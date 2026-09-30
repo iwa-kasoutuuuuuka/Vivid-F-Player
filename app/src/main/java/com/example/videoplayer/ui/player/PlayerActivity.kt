@@ -709,7 +709,12 @@ class PlayerActivity : AppCompatActivity() {
         val keepPlaying = !isFinishing && isBackgroundPlayEnabled
         // MediaSessionServiceは再生中でないとstartForeground()しないため、停止中に起動するとクラッシュする
         // MediaSessionService only calls startForeground() while playing; starting it while paused crashes
-        if (keepPlaying && playerManager.player.playWhenReady) {
+        // 最後のファイルの再生終了後も playWhenReady=true のままなので、状態も確認する
+        // playWhenReady stays true after the last file ends (STATE_ENDED), so check the state too
+        val player = playerManager.player
+        val isActuallyPlaying = player.isPlaying ||
+            (player.playWhenReady && player.playbackState == Player.STATE_BUFFERING)
+        if (keepPlaying && isActuallyPlaying) {
             val intent = Intent(this, PlaybackService::class.java)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
         } else {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 暗号化済みSMB認証情報をバックアップ/端末間転送から除外 (Android 12以降) -->
+<!-- Exclude encrypted SMB credentials from cloud backup and device transfer (Android 12+) -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="smb_credentials.xml" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="smb_credentials.xml" />
+    </device-transfer>
+</data-extraction-rules>

@@ -6,7 +6,9 @@ import com.example.videoplayer.data.model.VideoFile
 
 class CompositeVideoRepository(private val context: Context) : VideoRepository {
     private val localRepository = LocalVideoRepository(context)
-    private val smbRepository = SmbVideoRepository()
+    private val smbRepository = SmbVideoRepository(
+        com.example.videoplayer.data.manager.SmbCredentialStore.getInstance(context)
+    )
 
     override suspend fun getVideoFiles(uri: Uri): List<VideoFile> {
         return when (uri.scheme) {
