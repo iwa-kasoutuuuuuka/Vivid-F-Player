@@ -32,6 +32,52 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 - ⚡ **再生速度変更 / Playback Speed Control**: 0.5xから2.0xまで調整可能。 / Adjustable from 0.5x to 2.0x.
 - 🔖 **レジューム再生 / Resume Playback**: 続きから再生。 / Resume from where you left off.
 
+## 🎮 操作方法・ジェスチャーガイド / Controls & Gestures
+
+動画再生画面では、直感的なタッチ操作とジェスチャーに対応しています。
+The video player screen supports intuitive touch operations and gestures.
+
+| 操作 / Operation | アクション / Action | 説明 / Description |
+| :--- | :--- | :--- |
+| **画面左側 上下スワイプ / Left Vertical Swipe** | 輝度調整 / Brightness | 画面の明るさを 0% 〜 100% でスムーズに微調整 / Smoothly adjust screen brightness from 0% to 100% |
+| **画面右側 上下スワイプ / Right Vertical Swipe** | 音量調整 / Volume | メディア音量を 0% 〜 100% で直感的に調整 / Intuitively adjust media volume from 0% to 100% |
+| **左側ダブルタップ / Left Double-Tap** | 10秒巻き戻し / 10s Rewind | 動画を10秒前へシーク / Seek 10 seconds backward |
+| **右側ダブルタップ / Right Double-Tap** | 10秒早送り / 10s Forward | 動画を10秒先へシーク / Seek 10 seconds forward |
+| **画面長押し / Long Press** | 2.0倍速再生 / 2.0x Fast Forward | 押している間だけ2.0倍速で再生、離すと元の速度に復帰 / Plays at 2.0x while holding, restores original speed on release |
+| **画面ロック / Screen Lock** | 誤操作防止 / Lock Touch | コントロールバーの鍵アイコンでジェスチャーとタップ操作をロック / Lock gestures and controls via the lock icon on the top bar |
+| **ABループ / AB Loop** | 区間繰り返し / Segment Repeat | A点とB点を指定して特定シーンのみを繰り返しループ再生 / Loop a specific scene by setting A and B points |
+| **アスペクト比切替 / Aspect Ratio** | 画面サイズ変更 / Resize | フィット、全画面拡大、固定幅・高さなどの表示比率を順次切り替え / Cycle through Fit, Fill, Zoom, Fixed Width, and Fixed Height |
+
+---
+
+## 🔒 SMB共有の設定とセキュリティ / SMB Setup & Security
+
+自宅のNASやPCの共有フォルダを追加し、Wi-Fi経由で大容量の動画を直接ストリーミング再生できます。
+You can add shared folders from your home NAS or PC and stream videos directly over Wi-Fi.
+
+- **接続手順 / How to Connect**:
+  1. フォルダ一覧の「SMB共有を追加」をタップ
+  2. サーバーIPまたはホスト名（例: `192.168.1.100` または `mynas.local`）を入力
+  3. 共有名（例: `video` や `movies`）を入力
+  4. 認証が必要な場合はユーザー名・パスワードを入力（ドメイン指定時は `DOMAIN\user` 形式も対応）
+- **堅牢な暗号化セキュリティ (v1.2.18以降) / Keystore Encryption**:
+  - パスワードはURLなどの平文文字列には一切保存されません。
+  - **Android Keystore (AES-256-GCM)** を用いて端末内のセキュアストレージに暗号化保存されます。
+  - クラウドバックアップや機種変更時のデータ移行からも自動除外され、認証情報の外部流出を防止します。
+- **入力アシスト / Input Sanitization**:
+  - 日本語IME（全角・かな入力）によるアドレスの誤入力を自動でNFKC正規化・フィルタリングします。
+
+---
+
+## 📲 APKのインストール方法 / How to Install APK
+
+1. [最新の app-debug.apk](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk) をAndroid端末でダウンロードします。
+2. ダウンロード完了通知またはファイルマネージャーから APK ファイルをタップします。
+3. 初回インストール時は「設定」画面が表示されます。「この提供元のアプリを許可」を有効にしてください。
+4. 「インストール」をタップすれば完了です。
+
+---
+
 ## 📁 フォルダ構成 / Directory Structure
 
 ```text
