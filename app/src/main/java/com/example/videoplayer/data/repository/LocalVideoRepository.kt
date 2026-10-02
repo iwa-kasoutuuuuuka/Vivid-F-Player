@@ -12,11 +12,20 @@ import java.util.concurrent.ConcurrentHashMap
 
 class LocalVideoRepository(private val context: Context) : VideoRepository {
 
-    private val videoExtensions = setOf("mp4", "mkv", "avi")
-    private val subtitleExtensions = setOf("srt", "ass", "vtt")
+    companion object {
+        private val videoExtensions = setOf("mp4", "mkv", "avi", "mov", "webm", "ts", "flv", "m4v", "3gp")
+        private val subtitleExtensions = setOf("srt", "ass", "vtt")
 
-    // キャッシュ: folderUri -> List<SubtitleEntry(name, uri)>
-    private val subtitleCache = ConcurrentHashMap<String, List<Pair<String, Uri>>>()
+        // プロセス全体で共有する字幕キャッシュ: folderUri -> List<Pair<SubtitleName, SubtitleUri>>
+        private val subtitleCache = ConcurrentHashMap<String, List<Pair<String, Uri>>>()
+
+        fun isSubtitleForVideo(subtitleFileName: String, videoBaseName: String): Boolean {
+            val subBase = subtitleFileName.substringBeforeLast('.')
+            return subBase.equals(videoBaseName, ignoreCase = true) ||
+                   subBase.startsWith("${videoBaseName}.", ignoreCase = true) ||
+                   subBase.startsWith("${videoBaseName}_", ignoreCase = true)
+        }
+    }
 
     override suspend fun getVideoFiles(folderUri: Uri): List<VideoFile> = withContext(Dispatchers.IO) {
         val folderKey = folderUri.toString()
@@ -85,8 +94,8 @@ class LocalVideoRepository(private val context: Context) : VideoRepository {
                     val mime = if (mimeIdx >= 0) cursor.getString(mimeIdx) else null
                     if (mime == DocumentsContract.Document.MIME_TYPE_DIR) continue
 
-                    val name = if (nameIdx >= 0) cursor.getString(nameIdx) else null ?: continue
-                    val docChildId = if (idIdx >= 0) cursor.getString(idIdx) else null ?: continue
+                    val name = (if (nameIdx >= 0) cursor.getString(nameIdx) else null) ?: continue
+                    val docChildId = (if (idIdx >= 0) cursor.getString(idIdx) else null) ?: continue
                     val size = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else 0L
                     val lastModified = if (modIdx >= 0) cursor.getLong(modIdx) else 0L
 
@@ -119,11 +128,11 @@ class LocalVideoRepository(private val context: Context) : VideoRepository {
         val folderKey = folderUri.toString()
         val videoBaseName = videoFileName.substringBeforeLast('.')
 
-        // 1. キャッシュから検索（0ミリ秒）
+        // 1. キャッシュから検索（0ミリ秒・プロセス共有）
         val cached = subtitleCache[folderKey]
         if (cached != null) {
             return@withContext cached
-                .filter { it.first.startsWith(videoBaseName) }
+                .filter { isSubtitleForVideo(it.first, videoBaseName) }
                 .map { it.second }
         }
 
@@ -131,7 +140,7 @@ class LocalVideoRepository(private val context: Context) : VideoRepository {
         getVideoFiles(folderUri)
         val refreshed = subtitleCache[folderKey] ?: emptyList()
         refreshed
-            .filter { it.first.startsWith(videoBaseName) }
+            .filter { isSubtitleForVideo(it.first, videoBaseName) }
             .map { it.second }
     }
 }

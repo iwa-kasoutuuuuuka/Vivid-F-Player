@@ -11,11 +11,20 @@ import java.util.concurrent.ConcurrentHashMap
 
 class SmbVideoRepository(private val credentialStore: SmbCredentialStore) : VideoRepository {
 
-    private val videoExtensions = setOf("mp4", "mkv", "avi")
-    private val subtitleExtensions = setOf("srt", "ass", "vtt")
+    companion object {
+        private val videoExtensions = setOf("mp4", "mkv", "avi", "mov", "webm", "ts", "flv", "m4v", "3gp")
+        private val subtitleExtensions = setOf("srt", "ass", "vtt")
 
-    // キャッシュ: folderUri -> List<Pair<SubtitleName, SubtitleUri>>
-    private val subtitleCache = ConcurrentHashMap<String, List<Pair<String, Uri>>>()
+        // プロセス全体で共有する字幕キャッシュ: folderUri -> List<Pair<SubtitleName, SubtitleUri>>
+        private val subtitleCache = ConcurrentHashMap<String, List<Pair<String, Uri>>>()
+
+        fun isSubtitleForVideo(subtitleFileName: String, videoBaseName: String): Boolean {
+            val subBase = subtitleFileName.substringBeforeLast('.')
+            return subBase.equals(videoBaseName, ignoreCase = true) ||
+                   subBase.startsWith("${videoBaseName}.", ignoreCase = true) ||
+                   subBase.startsWith("${videoBaseName}_", ignoreCase = true)
+        }
+    }
 
     private fun open(uri: Uri): SmbFile {
         // SMB URI format: smb://host[:port]/share/path/ (認証情報は暗号化ストアから / credentials come from the store)
@@ -68,7 +77,7 @@ class SmbVideoRepository(private val credentialStore: SmbCredentialStore) : Vide
         val cached = subtitleCache[folderKey]
         if (cached != null) {
             return@withContext cached
-                .filter { it.first.startsWith(videoBaseName) }
+                .filter { isSubtitleForVideo(it.first, videoBaseName) }
                 .map { it.second }
         }
 
@@ -76,7 +85,7 @@ class SmbVideoRepository(private val credentialStore: SmbCredentialStore) : Vide
         getVideoFiles(folderUri)
         val refreshed = subtitleCache[folderKey] ?: emptyList()
         refreshed
-            .filter { it.first.startsWith(videoBaseName) }
+            .filter { isSubtitleForVideo(it.first, videoBaseName) }
             .map { it.second }
     }
 }

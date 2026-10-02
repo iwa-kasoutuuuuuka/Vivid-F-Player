@@ -4,7 +4,7 @@ import java.util.Comparator
 
 /**
  * 1, 2, 10 のように数字を考慮した自然順ソートを行うためのコンパレータです。
- * オブジェクトアロケーションをゼロにし、超高速に比較します。
+ * 大文字小文字を区別せず（case-insensitive）、かつアロケーションゼロで超高速に比較します。
  */
 object NaturalOrderComparator : Comparator<String> {
     override fun compare(s1: String, s2: String): Int {
@@ -58,13 +58,17 @@ object NaturalOrderComparator : Comparator<String> {
                     return zeroCount1 - zeroCount2
                 }
             } else {
-                if (c1 != c2) {
-                    return c1 - c2
+                val lc1 = c1.lowercaseChar()
+                val lc2 = c2.lowercaseChar()
+                if (lc1 != lc2) {
+                    return lc1 - lc2
                 }
                 i++
                 j++
             }
         }
-        return len1 - len2
+        if (len1 != len2) return len1 - len2
+        // 大文字小文字無視で同値の場合は元の文字コード順で安定ソート
+        return s1.compareTo(s2)
     }
 }

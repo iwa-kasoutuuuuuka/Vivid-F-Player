@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.22
+- **Current Version**: v1.2.23
 - **Latest Build**: [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) ([直接ダウンロード / Direct Download](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk))
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -25,8 +25,9 @@ It supports multi-folder management, continuous playback in alphabetical order, 
   - **瞬時再生開始 (Instant Start)**: 再生開始バッファを 600ms（従来の1/4）に最適化し、タップした瞬間に動画が再生開始。 / Optimized playback buffer to 600ms for instant start.
   - **15秒バックバッファ保持 (Instant Rewind)**: ダブルタップ巻き戻し（10秒戻し）時に再ダウンロードが不要、メモリから遅延ゼロで瞬時復帰。 / 15s back-buffer enables 0ms instant rewinds.
   - **ローカルフォルダ走査の数十倍高速化 (Batch Query)**: `DocumentsContract` による直接一括クエリにより、大量動画フォルダの読み込み待機時間を大幅短縮。 / Direct ContentResolver batch query loads 100+ files in milliseconds.
-  - **連続再生のシームレス化 (Subtitle Cache)**: 字幕ファイル一覧のインメモリキャッシュにより、次の動画への切り替え待ち時間（1〜3秒）を完全解消。 / In-memory subtitle cache makes playlist track switches instant.
-  - **アロケーションフリー自然順ソート (Zero-Alloc Sort)**: メモリ割り当てなしの高速比較により、スクロールやソートのGCカクつきを防止。 / Zero-allocation natural sort avoids GC stutters.
+  - **連続再生のシームレス化 (Subtitle Cache)**: 字幕ファイル一覧のプロセス共有インメモリキャッシュにより、次の動画への切り替え待ち時間（1〜3秒）を完全解消。 / Process-wide in-memory subtitle cache makes playlist track switches instant.
+  - **大文字小文字対応の自然順ソート (Case-Insensitive Sort)**: 大文字・小文字の混在（例: `EP01` と `ep02`）も自然順で完璧にソート、かつメモリ割り当てゼロで高速。 / Zero-allocation case-insensitive natural order sorting.
+  - **幅広い動画フォーマット対応 (Format Support)**: mp4, mkv, avi に加え、mov, webm, ts, flv, m4v, 3gp に対応。 / Supports mp4, mkv, avi, mov, webm, ts, flv, m4v, 3gp.
 - **🎬 モダンな再生コントロール / Modern Playback**: YouTube風ジェスチャー（長押し倍速、ダブルタップスキップ）、ピンチズーム（1.0x〜3.0x）、画面ロック、ABループ機能。 / YouTube-style gestures, Pinch Zoom (1.0x–3.0x), Screen Lock, and AB Loop.
 - **⛺ キャンプ・省電力特化機能 / Camping & Power Saving**:
   - **画面完全消灯ポケットモード (Pocket Mode)**: 画面ブラックアウトに加え、画面輝度を極小値（0.01f）へ強制減光。誤タッチ防止と超省電力を両立し、ワンタップで元の輝度・画面へ即復帰。 / Screen blackout with hardware backlight dimming (0.01f) and touch protection; one tap restores original brightness.

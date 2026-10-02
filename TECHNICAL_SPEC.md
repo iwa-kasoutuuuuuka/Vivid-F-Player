@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.22
+# 技術仕様書 (Technical Specifications) - v1.2.23
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -12,7 +12,19 @@ Vivid F Player is an Android video player specialized for watching videos in off
 
 ## バージョン履歴 / Version History
 
-### v1.2.22 (Current)
+### v1.2.23 (Current)
+- **Fast Batch Query Null-Safety & Fallback**:
+  - Hardened `tryFastQuery` null checks on `cursor.getString()` preventing any potential `NullPointerException` during fast document scanning.
+- **Process-Wide Shared Subtitle Cache**:
+  - Moved `subtitleCache` to `companion object` in `LocalVideoRepository` and `SmbVideoRepository`. Scans performed during directory browsing in `FileListFragment` are now shared directly with `PlayerActivity`, enabling 0ms subtitle resolution on first video playback.
+- **Accurate Subtitle Matching**:
+  - Replaced broad `startsWith` checks with strict base-name equality and delimited language suffixes (`.`, `_`), preventing incorrect subtitle pairing on similarly prefixed video files.
+- **Extended Video Format Support**:
+  - Added support for `.mov`, `.webm`, `.ts`, `.flv`, `.m4v`, and `.3gp` files across both local and SMB repositories.
+- **Case-Insensitive Zero-Allocation Natural Sort**:
+  - Enhanced `NaturalOrderComparator` with case-insensitive character comparisons while maintaining zero object allocations, preventing file list fragmentation across mixed-case filenames (`EP01` vs `ep02`).
+
+### v1.2.22
 - **Instant Playback & Buffer Optimization**:
   - `DefaultLoadControl` tuned with `bufferForPlaybackMs = 600` (down from 2500ms) and `bufferForPlaybackAfterRebufferMs = 1500` (down from 5000ms), cutting initial launch latency by ~75%.
   - Added 15-second back-buffer retention (`setBackBuffer(15_000, true)`), allowing instantaneous 0ms rewind on 10s double-tap gestures.
