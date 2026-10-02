@@ -46,6 +46,7 @@ import com.example.videoplayer.ui.main.SettingsBottomSheet
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class PlayerActivity : AppCompatActivity() {
     companion object {
         private const val ACTION_PIP_CONTROL = "com.example.videoplayer.PIP_CONTROL"
@@ -70,6 +71,7 @@ class PlayerActivity : AppCompatActivity() {
     private var isAutoPipEnabled: Boolean = true
     private val hideHandler = Handler(Looper.getMainLooper())
     private val hideRunnable = Runnable { hideControls() }
+    private val hideIndicatorRunnable = Runnable { binding.indicatorLayout.visibility = View.GONE }
     private val HIDE_DELAY = 3000L
     private lateinit var resumeManager: ResumeManager
     private var playJob: Job? = null
@@ -527,7 +529,7 @@ class PlayerActivity : AppCompatActivity() {
             override fun onDown(e: MotionEvent): Boolean {
                 val isLeft = e.x < binding.playerView.width / 2
                 val now = SystemClock.uptimeMillis()
-                if (!isLocked && isLeft && (now - lastLeftDoubleTapTime < 500)) {
+                if (!isLocked && isLeft && (now - lastLeftDoubleTapTime < 350)) {
                     // 左側トリプルタップ: 動画の先頭に戻す
                     lastLeftDoubleTapTime = 0L
                     playerManager.player.seekTo(0)
@@ -558,7 +560,7 @@ class PlayerActivity : AppCompatActivity() {
                     val lp = window.attributes
                     lp.screenBrightness = newBrightness
                     window.attributes = lp
-                    showIndicator(R.drawable.ic_brightness, (newBrightness * 100).toInt())
+                    showIndicator(R.drawable.ic_brightness, (newBrightness * 100).toInt(), autoHide = false)
                 } else {
                     // 右側: 音量調整 (画面の高さ分スワイプで 0 -> MaxVolume)
                     val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -566,7 +568,7 @@ class PlayerActivity : AppCompatActivity() {
                     val volumeDelta = ((deltaY / height) * maxVolume).toInt()
                     val newVolume = (initialVolume + volumeDelta).coerceIn(0, maxVolume)
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
-                    showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt())
+                    showIndicator(R.drawable.ic_volume, (newVolume.toFloat() / maxVolume * 100).toInt(), autoHide = false)
                 }
                 return true
             }
@@ -594,12 +596,13 @@ class PlayerActivity : AppCompatActivity() {
             }
         })
 
-        binding.playerView.setOnTouchListener { v, event ->
+        binding.playerView.setOnTouchListener { _, event ->
             gestureDetector.onTouchEvent(event)
             if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
                 if (isFastForwarding) stopFastForward()
                 if (binding.indicatorLayout.visibility == View.VISIBLE) {
-                    hideHandler.postDelayed({ binding.indicatorLayout.visibility = View.GONE }, 1000)
+                    hideHandler.removeCallbacks(hideIndicatorRunnable)
+                    hideHandler.postDelayed(hideIndicatorRunnable, 1000)
                 }
             }
             true
@@ -620,7 +623,8 @@ class PlayerActivity : AppCompatActivity() {
         binding.tvSpeedIndicator.visibility = View.GONE
     }
 
-    private fun showIndicator(iconRes: Int, progress: Int, text: String? = null) {
+    private fun showIndicator(iconRes: Int, progress: Int, text: String? = null, autoHide: Boolean = true) {
+        hideHandler.removeCallbacks(hideIndicatorRunnable)
         binding.indicatorLayout.visibility = View.VISIBLE
         binding.ivIndicatorIcon.setImageResource(iconRes)
         if (text != null) {
@@ -634,6 +638,9 @@ class PlayerActivity : AppCompatActivity() {
             binding.pbIndicator.progress = progress
         } else {
             binding.pbIndicator.visibility = View.GONE
+        }
+        if (autoHide) {
+            hideHandler.postDelayed(hideIndicatorRunnable, 1000)
         }
     }
 
@@ -768,6 +775,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        hideHandler.removeCallbacksAndMessages(null)
         playerManager.player.removeListener(playerListener)
         unregisterReceiver(pipActionReceiver)
         if (isFinishing || !isBackgroundPlayEnabled) {
