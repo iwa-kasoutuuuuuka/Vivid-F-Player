@@ -25,6 +25,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val playbackSpeed = settings.playbackSpeed
     val repeatMode = settings.repeatMode
     val shuffleModeEnabled = settings.shuffleModeEnabled
+    val skipSeconds = settings.skipSeconds
+    val longPressSpeed = settings.longPressSpeed
+    val isVoiceBoostEnabled = settings.isVoiceBoostEnabled
+    val isNightModeEnabled = settings.isNightModeEnabled
     val sleepTimerMinutes = settings.sleepTimerMinutes
 
     private val _videoFiles = MutableStateFlow<List<VideoFile>>(emptyList())
@@ -88,5 +92,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun setPlaybackSpeed(speed: Float) = settings.setPlaybackSpeed(speed)
     fun setRepeatMode(mode: Int) = settings.setRepeatMode(mode)
     fun setShuffleModeEnabled(enabled: Boolean) = settings.setShuffleModeEnabled(enabled)
+    fun setSkipSeconds(seconds: Int) = settings.setSkipSeconds(seconds)
+    fun setLongPressSpeed(speed: Float) = settings.setLongPressSpeed(speed)
+    fun setVoiceBoostEnabled(enabled: Boolean) = settings.setVoiceBoostEnabled(enabled)
+    fun setNightModeEnabled(enabled: Boolean) = settings.setNightModeEnabled(enabled)
     fun setSleepTimer(minutes: Int) = settings.setSleepTimer(minutes)
 }

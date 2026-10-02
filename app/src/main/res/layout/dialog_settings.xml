@@ -1,85 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="24dp"
     android:background="@drawable/bg_dialog_glass">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/settings_title"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/playback_speed"
-        android:textColor="#BBBBBB"
-        android:layout_marginBottom="8dp" />
-
-    <RadioGroup
-        android:id="@+id/rg_speed"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0.5x" android:textColor="#FFFFFF" />
-        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.0x" android:textColor="#FFFFFF" android:checked="true" />
-        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5x" android:textColor="#FFFFFF" />
-        <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0x" android:textColor="#FFFFFF" />
-    </RadioGroup>
-
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:padding="24dp">
+
         <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/background_play"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp" />
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/sw_background_play"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="@string/settings_title"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="8dp">
+        <!-- 再生速度 -->
         <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/auto_pip"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp" />
-        <androidx.appcompat.widget.SwitchCompat
-            android:id="@+id/sw_auto_pip"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="@string/playback_speed"
+            android:textColor="#BBBBBB"
+            android:layout_marginBottom="8dp" />
 
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#333333" android:layout_marginVertical="16dp" />
+        <RadioGroup
+            android:id="@+id/rg_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.0x" android:textColor="#FFFFFF" android:checked="true" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0x" android:textColor="#FFFFFF" />
+        </RadioGroup>
 
+        <!-- スキップ秒数 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/skip_duration"
+            android:textColor="#BBBBBB"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/rg_skip_duration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5s" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10s" android:textColor="#FFFFFF" android:checked="true" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="30s" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="60s" android:textColor="#FFFFFF" />
+        </RadioGroup>
+
+        <!-- 長押し倍速 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/long_press_speed"
+            android:textColor="#BBBBBB"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <RadioGroup
+            android:id="@+id/rg_long_press_speed"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0x" android:textColor="#FFFFFF" android:checked="true" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3.0x" android:textColor="#FFFFFF" />
+        </RadioGroup>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
+
+        <!-- スイッチ群 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/background_play"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/sw_background_play"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="12dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/auto_pip"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/sw_auto_pip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="12dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/voice_boost"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/sw_voice_boost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="12dp">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/night_mode"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/sw_night_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#333333" android:layout_marginVertical="16dp" />
+
+        <!-- リピートモード -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/repeat_mode"
             android:textColor="#BBBBBB"
-            android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp" />
 
         <RadioGroup
@@ -92,12 +177,13 @@
             <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ALL" android:textColor="#FFFFFF" />
         </RadioGroup>
 
+        <!-- シャッフル -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="12dp">
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -111,22 +197,24 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/manage_folders"
-        android:textColor="#BBBBBB"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp" />
+        <!-- フォルダ管理 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/manage_folders"
+            android:textColor="#BBBBBB"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_folders"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="160dp" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_folders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxHeight="160dp" />
 
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
 
+        <!-- トラブルシューティング & おやすみタイマー -->
         <TextView
             android:id="@+id/btn_troubleshooting"
             android:layout_width="match_parent"
@@ -182,4 +270,5 @@
             android:drawableStart="@android:drawable/ic_lock_idle_low_battery"
             android:drawablePadding="8dp" />
 
-</LinearLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

@@ -39,6 +39,18 @@ class AppSettings private constructor(context: Context) {
     private val _shuffleModeEnabled = MutableStateFlow(prefs.getBoolean("shuffle_mode", false))
     val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled.asStateFlow()
 
+    private val _skipSeconds = MutableStateFlow(prefs.getInt("skip_seconds", 10))
+    val skipSeconds: StateFlow<Int> = _skipSeconds.asStateFlow()
+
+    private val _longPressSpeed = MutableStateFlow(prefs.getFloat("long_press_speed", 2.0f))
+    val longPressSpeed: StateFlow<Float> = _longPressSpeed.asStateFlow()
+
+    private val _isVoiceBoostEnabled = MutableStateFlow(prefs.getBoolean("voice_boost", false))
+    val isVoiceBoostEnabled: StateFlow<Boolean> = _isVoiceBoostEnabled.asStateFlow()
+
+    private val _isNightModeEnabled = MutableStateFlow(prefs.getBoolean("night_mode", false))
+    val isNightModeEnabled: StateFlow<Boolean> = _isNightModeEnabled.asStateFlow()
+
     private val _sleepTimerMinutes = MutableStateFlow(0)
     val sleepTimerMinutes: StateFlow<Int> = _sleepTimerMinutes.asStateFlow()
 
@@ -70,6 +82,26 @@ class AppSettings private constructor(context: Context) {
     fun setShuffleModeEnabled(enabled: Boolean) {
         _shuffleModeEnabled.value = enabled
         prefs.edit().putBoolean("shuffle_mode", enabled).apply()
+    }
+
+    fun setSkipSeconds(seconds: Int) {
+        _skipSeconds.value = seconds
+        prefs.edit().putInt("skip_seconds", seconds).apply()
+    }
+
+    fun setLongPressSpeed(speed: Float) {
+        _longPressSpeed.value = speed
+        prefs.edit().putFloat("long_press_speed", speed).apply()
+    }
+
+    fun setVoiceBoostEnabled(enabled: Boolean) {
+        _isVoiceBoostEnabled.value = enabled
+        prefs.edit().putBoolean("voice_boost", enabled).apply()
+    }
+
+    fun setNightModeEnabled(enabled: Boolean) {
+        _isNightModeEnabled.value = enabled
+        prefs.edit().putBoolean("night_mode", enabled).apply()
     }
 
     /**

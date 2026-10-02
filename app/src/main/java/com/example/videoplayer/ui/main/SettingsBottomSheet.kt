@@ -55,6 +55,82 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
             viewModel.setPlaybackSpeed(speed)
         }
 
+        // スキップ秒数の監視 / Monitor skip duration
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.skipSeconds.collect { sec ->
+                    when (sec) {
+                        5 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(0).id)
+                        10 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(1).id)
+                        30 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(2).id)
+                        60 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(3).id)
+                    }
+                }
+            }
+        }
+
+        binding.rgSkipDuration.setOnCheckedChangeListener { _, checkedId ->
+            val sec = when (checkedId) {
+                binding.rgSkipDuration.getChildAt(0).id -> 5
+                binding.rgSkipDuration.getChildAt(1).id -> 10
+                binding.rgSkipDuration.getChildAt(2).id -> 30
+                binding.rgSkipDuration.getChildAt(3).id -> 60
+                else -> 10
+            }
+            viewModel.setSkipSeconds(sec)
+        }
+
+        // 長押し倍速の監視 / Monitor long press speed
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.longPressSpeed.collect { speed ->
+                    when (speed) {
+                        1.5f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(0).id)
+                        2.0f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(1).id)
+                        2.5f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(2).id)
+                        3.0f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(3).id)
+                    }
+                }
+            }
+        }
+
+        binding.rgLongPressSpeed.setOnCheckedChangeListener { _, checkedId ->
+            val speed = when (checkedId) {
+                binding.rgLongPressSpeed.getChildAt(0).id -> 1.5f
+                binding.rgLongPressSpeed.getChildAt(1).id -> 2.0f
+                binding.rgLongPressSpeed.getChildAt(2).id -> 2.5f
+                binding.rgLongPressSpeed.getChildAt(3).id -> 3.0f
+                else -> 2.0f
+            }
+            viewModel.setLongPressSpeed(speed)
+        }
+
+        // ボイスブーストの監視 / Monitor voice boost
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.isVoiceBoostEnabled.collect { enabled ->
+                    binding.swVoiceBoost.isChecked = enabled
+                }
+            }
+        }
+
+        binding.swVoiceBoost.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setVoiceBoostEnabled(isChecked)
+        }
+
+        // 極低輝度ナイトモードの監視 / Monitor night mode
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.isNightModeEnabled.collect { enabled ->
+                    binding.swNightMode.isChecked = enabled
+                }
+            }
+        }
+
+        binding.swNightMode.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.setNightModeEnabled(isChecked)
+        }
+
         // バックグラウンド再生設定の監視 / Monitor background play setting
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {

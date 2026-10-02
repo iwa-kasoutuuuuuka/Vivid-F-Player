@@ -40,4 +40,12 @@ Depending on the Android version or device, background playback may stop. Please
     <string name="invalid_smb_path">無効なSMBパスです</string>
     <string name="hw_optimization">ハードウェア・デコード最適化</string>
     <string name="hw_optimization_desc">高ビットレート動画の再生を安定化し、省電力化します</string>
+    <string name="skip_duration">スキップ秒数 / Double-Tap Skip</string>
+    <string name="long_press_speed">長押し倍速 / Long-Press Speed</string>
+    <string name="voice_boost">ボイスブースト（声の強調） / Voice Boost</string>
+    <string name="night_mode">極低輝度ナイトモード / Extra Dim (Night Mode)</string>
+    <string name="pocket_mode">省電力画面消灯 / Pocket Mode (Screen Off)</string>
+    <string name="audio_track">音声選択 / Audio Track</string>
+    <string name="tap_to_wake">タップして画面を点灯 / Tap to wake</string>
+    <string name="unwatched_badge">未視聴</string>
 </resources>

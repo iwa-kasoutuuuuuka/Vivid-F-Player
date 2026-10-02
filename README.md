@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.19
+- **Current Version**: v1.2.20
 - **Latest Build**: [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) ([直接ダウンロード / Direct Download](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk))
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -21,15 +21,25 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 
 ## 🚀 主な機能 / Key Features
 
-- **🎬 モダンな再生コントロール / Modern Playback**: YouTube風ジェスチャー（長押し2倍速、ダブルタップスキップ）、画面ロック、ABループ機能。 / YouTube-style gestures, Screen Lock, and AB Loop.
-- **📂 マルチフォルダ管理 / Folder Management**: ローカルおよびSMBフォルダを複数登録・管理可能。 / Register multiple local or SMB folders.
+- **🎬 モダンな再生コントロール / Modern Playback**: YouTube風ジェスチャー（長押し倍速、ダブルタップスキップ）、ピンチズーム（1.0x〜3.0x）、画面ロック、ABループ機能。 / YouTube-style gestures, Pinch Zoom (1.0x–3.0x), Screen Lock, and AB Loop.
+- **⛺ キャンプ・省電力特化機能 / Camping & Power Saving**:
+  - **画面完全消灯ポケットモード (Pocket Mode)**: 画面を完全ブラックアウトし誤タッチを防止しながら音声・動画を継続再生。ワンタップで復帰。 / Black out screen with touch protection while playing audio; one tap to wake.
+  - **極低輝度ナイトモード (Extra Dim / Night Mode)**: 真っ暗なテント内でも眩しくない半透明ブラックオーバーレイ。 / Soft dimming overlay for pitch-dark tents.
+  - **時計＆バッテリー常時確認 (Status Bar)**: コントロールバーに現在時刻とバッテリー残量（🔋%）を表示。 / Real-time clock and battery level on controls.
+  - **5分自動スリープ保護 (Sleep Protection)**: 一時停止から5分経過で画面常時点灯を解除しバッテリー激減・寝落ちを防止。 / Automatically releases wake-lock 5 min after pausing.
+- **🔊 音響強化 / Enhanced Audio**:
+  - **ボイスブースト (Voice Boost)**: `LoudnessEnhancer` により、焚き火や屋外の環境音の中でもセリフ・人の声をくっきり強調。 / Boost speech frequencies over ambient noise using hardware audiofx.
+  - **音声トラック切り替え (Audio Track Selection)**: 主音声/副音声や多言語音声トラックをダイアログから手軽に選択可能。 / Easily switch audio streams and secondary audio.
+- **📂 マルチフォルダ管理＆未視聴バッジ / Folder & Video Management**:
+  - ローカルおよびSMBフォルダを複数登録・管理可能。 / Register multiple local or SMB folders.
+  - 未再生の動画に鮮やかな「未視聴 (NEW)」バッジを表示。進捗バーと合わせて視聴状況が一目で把握可能。 / Unwatched video badge and resume progress bars.
 - **🌐 SMBストリーミング / SMB Streaming**: NAS等のSMB共有から直接再生。認証情報は Android Keystore で暗号化して保存。 / Play directly from SMB shares; credentials are encrypted with the Android Keystore.
 - **📄 字幕サポート / Subtitle Support**: 同一ファイル名の字幕（.srt, .ass, .vtt）の自動読み込みと手動選択。 / Auto-loading and manual selection of subtitles.
 - **🌙 Vividデザイン / Vivid Design**: グラスモーフィズムを採用したモダンなUIと、リストでの再生進捗表示。 / Modern glassmorphism UI with progress indicators in lists.
 - **🎵 バックグラウンド再生 / Background Play**: 画面オフや他アプリ使用中でも音声再生を継続。 / Continuous audio playback in the background.
 - 📺 **ピクチャー・イン・ピクチャー (PiP) / Picture-in-Picture**: 再生中にホームへ戻ると自動で小窓表示（設定でON/OFF）。上部バーのPiPボタンからも移行でき、小窓から前へ/再生・一時停止/次へを操作可能。 / Auto-enters a floating window when you go Home during playback (toggle in Settings), or via the PiP button; the window offers Previous / Play-Pause / Next.
-- 🖐️ **ジェスチャーコントロール / Gesture Control**: 明るさ、音量、シークを直感的に操作。 / Intuitively control brightness, volume, and seeking.
-- ⚡ **再生速度変更 / Playback Speed Control**: 0.5xから2.0xまで調整可能。 / Adjustable from 0.5x to 2.0x.
+- 🖐️ **ジェスチャーコントロール / Gesture Control**: 明るさ、音量、シーク、ズームを直感的に操作。 / Intuitively control brightness, volume, seeking, and pinch-zoom.
+- ⚡ **カスタマイズ自在 / Full Customization**: スキップ秒数（5s/10s/30s/60s）、長押し倍速（1.5x〜3.0x）、再生速度（0.5x〜2.0x）を好みに設定可能。 / Configurable skip duration, fast-forward speed, and base playback speed.
 - 🔖 **レジューム再生 / Resume Playback**: 続きから再生。 / Resume from where you left off.
 
 ## 🎮 操作方法・ジェスチャーガイド / Controls & Gestures
@@ -41,11 +51,15 @@ The video player screen supports intuitive touch operations and gestures.
 | :--- | :--- | :--- |
 | **画面左側 上下スワイプ / Left Vertical Swipe** | 輝度調整 / Brightness | 画面の明るさを 0% 〜 100% でスムーズに微調整 / Smoothly adjust screen brightness from 0% to 100% |
 | **画面右側 上下スワイプ / Right Vertical Swipe** | 音量調整 / Volume | メディア音量を 0% 〜 100% で直感的に調整 / Intuitively adjust media volume from 0% to 100% |
-| **左側ダブルタップ / Left Double-Tap** | 10秒巻き戻し / 10s Rewind | 動画を10秒前へシーク / Seek 10 seconds backward |
+| **2本指ピンチイン・アウト / Pinch Zoom** | 画面ズーム / Zoom | 1.0x 〜 3.0x までシームレスに拡大・縮小 / Seamless zoom from 1.0x to 3.0x |
+| **ダブルタップ（拡大中） / Double-Tap while Zoomed** | 等倍リセット / Reset Zoom | 拡大表示中にダブルタップすると瞬時に等倍 (1.0x) にリセット / Quickly reset zoom back to 1.0x |
+| **左側ダブルタップ / Left Double-Tap** | 巻き戻し / Rewind | 動画を指定秒数（5s/10s/30s/60s 設定可）前へシーク / Seek backward by configured seconds |
 | **左側トリプルタップ / Left Triple-Tap** | 動画の先頭に戻す / Rewind to Start | 素早く3回タップで動画の先頭（0:00）に即座に戻る / Rapid 3 taps immediately rewinds to the beginning of the video (0:00) |
-| **右側ダブルタップ / Right Double-Tap** | 10秒早送り / 10s Forward | 動画を10秒先へシーク / Seek 10 seconds forward |
+| **右側ダブルタップ / Right Double-Tap** | 早送り / Forward | 動画を指定秒数（5s/10s/30s/60s 設定可）先へシーク / Seek forward by configured seconds |
 | **「前へ」ボタン / Previous Button** | 先頭復帰 / 前の動画 / Rewind / Previous | 3秒以上再生中は「動画の先頭」へ戻る。3秒以内または長押しで「前の動画」へ移動 / Seeks to start if playing > 3s; goes to previous video if <= 3s or on long-press |
-| **画面長押し / Long Press** | 2.0倍速再生 / 2.0x Fast Forward | 押している間だけ2.0倍速で再生、離すと元の速度に復帰 / Plays at 2.0x while holding, restores original speed on release |
+| **画面長押し / Long Press** | 高速倍速再生 / Fast Forward | 押している間だけ設定倍速（1.5x〜3.0x）で再生、離すと元の速度に復帰 / Plays at configured speed while holding, restores original speed on release |
+| **ポケットモード / Pocket Mode** | 画面消灯 / Blackout | 上部バーの画面消灯アイコンで完全ブラックアウト。画面タップで復帰 / Black out screen to save battery and lock touches; tap to wake |
+| **音声トラック / Audio Track** | 音声切り替え / Switch Audio | 上部バーの音声アイコンから主音声・副音声・多言語音声を切り替え / Switch between multi-language or alternate audio tracks |
 | **画面ロック / Screen Lock** | 誤操作防止 / Lock Touch | コントロールバーの鍵アイコンでジェスチャーとタップ操作をロック / Lock gestures and controls via the lock icon on the top bar |
 | **ABループ / AB Loop** | 区間繰り返し / Segment Repeat | A点とB点を指定して特定シーンのみを繰り返しループ再生 / Loop a specific scene by setting A and B points |
 | **アスペクト比切替 / Aspect Ratio** | 画面サイズ変更 / Resize | フィット、全画面拡大、固定幅・高さなどの表示比率を順次切り替え / Cycle through Fit, Fill, Zoom, Fixed Width, and Fixed Height |

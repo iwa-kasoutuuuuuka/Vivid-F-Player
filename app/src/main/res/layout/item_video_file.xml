@@ -39,4 +39,18 @@
             android:progressDrawable="@drawable/bg_vivid_gradient"
             android:visibility="gone" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_unwatched_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_badge_new"
+        android:paddingHorizontal="6dp"
+        android:paddingVertical="2dp"
+        android:text="@string/unwatched_badge"
+        android:textColor="#FFFFFF"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
 </LinearLayout>

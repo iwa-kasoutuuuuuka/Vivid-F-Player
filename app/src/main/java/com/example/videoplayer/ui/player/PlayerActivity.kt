@@ -11,7 +11,9 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.content.res.Configuration
 import android.media.AudioManager
+import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -20,8 +22,12 @@ import android.os.SystemClock
 import android.util.Rational
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -89,6 +95,28 @@ class PlayerActivity : AppCompatActivity() {
 
     private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
     private var lastLeftDoubleTapTime = 0L
+
+    private var skipSeconds = 10
+    private var fastForwardSpeed = 2.0f
+    private var isVoiceBoostEnabled = false
+    private var loudnessEnhancer: LoudnessEnhancer? = null
+
+    private var scaleFactor = 1.0f
+    private lateinit var scaleGestureDetector: ScaleGestureDetector
+
+    private val statusUpdateHandler = Handler(Looper.getMainLooper())
+    private val statusUpdateRunnable = object : Runnable {
+        override fun run() {
+            updateStatusInfo()
+            statusUpdateHandler.postDelayed(this, 10000L)
+        }
+    }
+
+    private val sleepTimeoutHandler = Handler(Looper.getMainLooper())
+    private val sleepTimeoutRunnable = Runnable {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        binding.playerView.keepScreenOn = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -165,6 +193,26 @@ class PlayerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             viewModel.stopPlaybackEvent.collect { finish() }
         }
+        lifecycleScope.launch {
+            viewModel.skipSeconds.collect { skipSeconds = it }
+        }
+        lifecycleScope.launch {
+            viewModel.longPressSpeed.collect {
+                fastForwardSpeed = it
+                binding.tvSpeedIndicator.text = "${it}x >>"
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.isVoiceBoostEnabled.collect {
+                isVoiceBoostEnabled = it
+                applyVoiceBoost()
+            }
+        }
+        lifecycleScope.launch {
+            viewModel.isNightModeEnabled.collect {
+                binding.viewNightOverlay.visibility = if (it) View.VISIBLE else View.GONE
+            }
+        }
     }
 
     private fun setupPlaybackButtonAnimations() {
@@ -225,6 +273,15 @@ class PlayerActivity : AppCompatActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             updatePlayPauseIcon(isPlaying)
             updatePipParams()
+            if (isPlaying) {
+                applyVoiceBoost()
+                sleepTimeoutHandler.removeCallbacks(sleepTimeoutRunnable)
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                binding.playerView.keepScreenOn = true
+            } else {
+                sleepTimeoutHandler.removeCallbacks(sleepTimeoutRunnable)
+                sleepTimeoutHandler.postDelayed(sleepTimeoutRunnable, 5 * 60 * 1000L)
+            }
         }
 
         override fun onVideoSizeChanged(videoSize: androidx.media3.common.VideoSize) {
@@ -320,6 +377,20 @@ class PlayerActivity : AppCompatActivity() {
         binding.btnSubtitles.setOnClickListener {
             if (isLocked) return@setOnClickListener
             showTrackSelectionDialog(C.TRACK_TYPE_TEXT, "Select Subtitles")
+        }
+
+        binding.btnAudioTrack.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            showTrackSelectionDialog(C.TRACK_TYPE_AUDIO, getString(R.string.audio_track))
+        }
+
+        binding.btnPocketMode.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            enterPocketMode()
+        }
+
+        binding.layoutPocketMode.setOnClickListener {
+            exitPocketMode()
         }
 
         binding.btnLock.setOnClickListener {
@@ -493,11 +564,50 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun showControls() {
+        updateStatusInfo()
         binding.controlsLayout.visibility = View.VISIBLE
         binding.bottomControls.visibility = View.VISIBLE
         showSystemBars()
         hideHandler.removeCallbacks(hideRunnable)
         hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
+    }
+
+    private fun enterPocketMode() {
+        binding.layoutPocketMode.visibility = View.VISIBLE
+        hideControls()
+        showIndicator(R.drawable.ic_screen_off, -1, getString(R.string.pocket_mode))
+    }
+
+    private fun exitPocketMode() {
+        binding.layoutPocketMode.visibility = View.GONE
+        showControls()
+    }
+
+    private fun updateStatusInfo() {
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val timeStr = timeFormat.format(Date())
+
+        val bm = getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val batteryPct = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) ?: -1
+
+        val batteryStr = if (batteryPct >= 0) "🔋 $batteryPct%" else ""
+        binding.tvStatusInfo.text = if (batteryStr.isNotEmpty()) "$timeStr | $batteryStr" else timeStr
+    }
+
+    private fun applyVoiceBoost() {
+        try {
+            val audioSessionId = playerManager.player.audioSessionId
+            if (audioSessionId != C.AUDIO_SESSION_ID_UNSET && audioSessionId != 0) {
+                if (loudnessEnhancer == null || loudnessEnhancer?.id != audioSessionId) {
+                    loudnessEnhancer?.release()
+                    loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                }
+                loudnessEnhancer?.setTargetGain(if (isVoiceBoostEnabled) 800 else 0)
+                loudnessEnhancer?.enabled = isVoiceBoostEnabled
+            }
+        } catch (_: Exception) {
+            // AudioFx非対応環境のフォールバック
+        }
     }
 
     private fun hideControls() {
@@ -525,6 +635,17 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun setupGestures() {
+        scaleGestureDetector = ScaleGestureDetector(this, object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            override fun onScale(detector: ScaleGestureDetector): Boolean {
+                if (isLocked) return false
+                scaleFactor = (scaleFactor * detector.scaleFactor).coerceIn(1.0f, 3.0f)
+                applyZoom(scaleFactor)
+                val percent = (scaleFactor * 100).toInt()
+                showIndicator(R.drawable.ic_aspect_ratio_v, percent, "${percent}%", autoHide = false)
+                return true
+            }
+        })
+
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(e: MotionEvent): Boolean {
                 val isLeft = e.x < binding.playerView.width / 2
@@ -584,20 +705,36 @@ class PlayerActivity : AppCompatActivity() {
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 if (isLocked) return false
-                val isLeft = e.x < binding.playerView.width / 2
-                if (isLeft) {
-                    playerManager.player.seekBack()
-                    lastLeftDoubleTapTime = SystemClock.uptimeMillis()
-                } else {
-                    playerManager.player.seekForward()
+                // 拡大表示中のダブルタップは等倍(1.0x)にリセット
+                if (scaleFactor > 1.05f) {
+                    applyZoom(1.0f)
+                    showIndicator(R.drawable.ic_aspect_ratio_v, 100, "100%", autoHide = true)
+                    return true
                 }
-                showIndicator(if (isLeft) R.drawable.ic_previous else R.drawable.ic_next, -1, if (isLeft) "-10s" else "+10s")
+                val isLeft = e.x < binding.playerView.width / 2
+                val deltaMs = skipSeconds * 1000L
+                val curPos = playerManager.player.currentPosition
+                val duration = playerManager.player.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+                if (isLeft) {
+                    val targetPos = (curPos - deltaMs).coerceAtLeast(0L)
+                    playerManager.player.seekTo(targetPos)
+                    lastLeftDoubleTapTime = SystemClock.uptimeMillis()
+                    showIndicator(R.drawable.ic_previous, -1, "-${skipSeconds}s")
+                } else {
+                    val targetPos = (curPos + deltaMs).coerceAtMost(duration)
+                    playerManager.player.seekTo(targetPos)
+                    showIndicator(R.drawable.ic_next, -1, "+${skipSeconds}s")
+                }
                 return true
             }
         })
 
         binding.playerView.setOnTouchListener { _, event ->
-            gestureDetector.onTouchEvent(event)
+            if (event.pointerCount > 1) {
+                scaleGestureDetector.onTouchEvent(event)
+            } else {
+                gestureDetector.onTouchEvent(event)
+            }
             if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
                 if (isFastForwarding) stopFastForward()
                 if (binding.indicatorLayout.visibility == View.VISIBLE) {
@@ -609,10 +746,25 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun applyZoom(factor: Float) {
+        scaleFactor = factor
+        val surface = binding.playerView.videoSurfaceView
+        if (surface != null) {
+            surface.scaleX = factor
+            surface.scaleY = factor
+        } else {
+            binding.playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)?.let {
+                it.scaleX = factor
+                it.scaleY = factor
+            }
+        }
+    }
+
     private fun startFastForward() {
         isFastForwarding = true
         originalSpeed = playerManager.player.playbackParameters.speed
-        playerManager.player.setPlaybackSpeed(2.0f)
+        playerManager.player.setPlaybackSpeed(fastForwardSpeed)
+        binding.tvSpeedIndicator.text = "${fastForwardSpeed}x >>"
         binding.tvSpeedIndicator.visibility = View.VISIBLE
         hideControls()
     }
@@ -733,11 +885,15 @@ class PlayerActivity : AppCompatActivity() {
         super.onStart()
         binding.playerView.player = playerManager.player
         abLoopHandler.post(abLoopRunnable)
+        statusUpdateHandler.post(statusUpdateRunnable)
+        applyVoiceBoost()
     }
 
     override fun onStop() {
         super.onStop()
         abLoopHandler.removeCallbacks(abLoopRunnable)
+        statusUpdateHandler.removeCallbacks(statusUpdateRunnable)
+        sleepTimeoutHandler.removeCallbacks(sleepTimeoutRunnable)
         // 戻るボタン/おやすみタイマーで終了する場合はバックグラウンド再生しない
         // Don't keep playing when the user (or the sleep timer) is closing the player
         // PiP中のonStopは「PiPウィンドウが閉じられた」ことを意味するので、PiPを理由に再生継続しない
@@ -776,6 +932,10 @@ class PlayerActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         hideHandler.removeCallbacksAndMessages(null)
+        statusUpdateHandler.removeCallbacksAndMessages(null)
+        sleepTimeoutHandler.removeCallbacksAndMessages(null)
+        loudnessEnhancer?.release()
+        loudnessEnhancer = null
         playerManager.player.removeListener(playerListener)
         unregisterReceiver(pipActionReceiver)
         if (isFinishing || !isBackgroundPlayEnabled) {

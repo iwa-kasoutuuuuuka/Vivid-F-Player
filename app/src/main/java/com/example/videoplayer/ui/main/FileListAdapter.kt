@@ -21,8 +21,10 @@ class FileListAdapter(private val onClick: (VideoFile) -> Unit) :
             if (pos > 0 && dur > 0) {
                 binding.pbVideoProgress.visibility = android.view.View.VISIBLE
                 binding.pbVideoProgress.progress = ((pos * 100) / dur).toInt()
+                binding.tvUnwatchedBadge.visibility = android.view.View.GONE
             } else {
                 binding.pbVideoProgress.visibility = android.view.View.GONE
+                binding.tvUnwatchedBadge.visibility = if (pos <= 1000L) android.view.View.VISIBLE else android.view.View.GONE
             }
 
             binding.root.setOnClickListener { onClick(file) }

@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.19
+# 技術仕様書 (Technical Specifications) - v1.2.20
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -12,7 +12,23 @@ Vivid F Player is an Android video player specialized for watching videos in off
 
 ## バージョン履歴 / Version History
 
-### v1.2.19 (Current)
+### v1.2.20 (Current)
+- **Camping & Power Saving Suite**:
+  - **Pocket Mode**: Complete screen blackout overlay (`layout_pocket_mode`) with touch consumption. Allows audio and video playback while walking or in tent/pocket without accidental inputs; single tap wakes up.
+  - **Extra Dim (Night Mode)**: 40% opaque dark overlay (`view_night_overlay`) toggled via settings to prevent eye fatigue in dark campsites.
+  - **Clock & Battery Monitor**: Real-time display in the top controls bar (`tv_status_info`), polling battery percentage and system time every 10s.
+  - **5-Minute Auto-Sleep Protection**: Releases `FLAG_KEEP_SCREEN_ON` 5 minutes after playback pauses to prevent overnight battery drain.
+- **Audio Enhancements**:
+  - **Voice Boost**: Hardware audio effect `android.media.audiofx.LoudnessEnhancer` targeting speech intelligibility (+8dB gain) over ambient outdoor/bonfire noise. Rebound on track change and properly released on `onDestroy`.
+  - **Audio Track Selection**: Top-bar button displaying `TrackSelectionDialog` for `C.TRACK_TYPE_AUDIO`, supporting multi-language and secondary audio tracks.
+- **Enhanced Playback Controls & Gestures**:
+  - **Pinch Zoom**: `ScaleGestureDetector` seamlessly scales video rendering (`videoSurfaceView` / `exo_content_frame`) from 1.0x to 3.0x without clipping overlays. Double-tapping while zoomed instantly resets scale to 1.0x.
+  - **Configurable Double-Tap Skip**: User selectable (5s, 10s, 30s, 60s) stored in `AppSettings` and applied dynamically.
+  - **Configurable Fast-Forward Speed**: User selectable (1.5x, 2.0x, 2.5x, 3.0x) on long-press.
+- **Video Management**:
+  - **Unwatched Badge**: Videos with `pos <= 1000L` display a vibrant "未視聴" (NEW) pill badge in `FileListAdapter`. Once played past 1s, transitions to progress bar or hides upon completion.
+
+### v1.2.19
 - **Rewind to Start**:
   - `btnPrevious` incorporates standard 3-second seek rule: if playback position > 3000ms, seeks to 0:00 (`seekTo(0)`) and shows overlay indicator; if <= 3000ms, switches to previous video. Long-press on `btnPrevious` forces previous video switch regardless of position.
   - Left-side triple-tap detection in `setupGestures` allows rapid 3-tap gesture to rewind to 0:00 without delay to double-tap seeking.
