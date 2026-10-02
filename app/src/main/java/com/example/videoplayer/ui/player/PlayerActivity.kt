@@ -86,6 +86,7 @@ class PlayerActivity : AppCompatActivity() {
     private var abLoopState = ABLoopState.OFF
 
     private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+    private var lastLeftDoubleTapTime = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -352,6 +353,12 @@ class PlayerActivity : AppCompatActivity() {
             playPrevious()
         }
 
+        binding.btnPrevious.setOnLongClickListener {
+            if (isLocked) return@setOnLongClickListener true
+            playPrevious(forcePreviousTrack = true)
+            true
+        }
+
         binding.btnAspectRatio.setOnClickListener {
             if (isLocked) return@setOnClickListener
             cycleAspectRatio()
@@ -398,7 +405,14 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun playPrevious() {
+    private fun playPrevious(forcePreviousTrack: Boolean = false) {
+        val currentPos = playerManager.player.currentPosition
+        if (!forcePreviousTrack && currentPos > 3000) {
+            playerManager.player.seekTo(0)
+            showIndicator(R.drawable.ic_previous, -1, "0:00")
+            return
+        }
+
         if (currentIndex > 0) {
             playVideo(currentIndex - 1)
         } else if (repeatMode == Player.REPEAT_MODE_ALL && videoList.isNotEmpty()) {
@@ -511,6 +525,16 @@ class PlayerActivity : AppCompatActivity() {
     private fun setupGestures() {
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onDown(e: MotionEvent): Boolean {
+                val isLeft = e.x < binding.playerView.width / 2
+                val now = SystemClock.uptimeMillis()
+                if (!isLocked && isLeft && (now - lastLeftDoubleTapTime < 500)) {
+                    // 左側トリプルタップ: 動画の先頭に戻す
+                    lastLeftDoubleTapTime = 0L
+                    playerManager.player.seekTo(0)
+                    showIndicator(R.drawable.ic_previous, -1, "0:00")
+                    return true
+                }
+
                 // スクロール開始時の値を記憶して安定させる
                 val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
                 initialVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
@@ -559,7 +583,12 @@ class PlayerActivity : AppCompatActivity() {
             override fun onDoubleTap(e: MotionEvent): Boolean {
                 if (isLocked) return false
                 val isLeft = e.x < binding.playerView.width / 2
-                if (isLeft) playerManager.player.seekBack() else playerManager.player.seekForward()
+                if (isLeft) {
+                    playerManager.player.seekBack()
+                    lastLeftDoubleTapTime = SystemClock.uptimeMillis()
+                } else {
+                    playerManager.player.seekForward()
+                }
                 showIndicator(if (isLeft) R.drawable.ic_previous else R.drawable.ic_next, -1, if (isLeft) "-10s" else "+10s")
                 return true
             }

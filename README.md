@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.18
+- **Current Version**: v1.2.19
 - **Latest Build**: [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) ([直接ダウンロード / Direct Download](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk))
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -42,7 +42,9 @@ The video player screen supports intuitive touch operations and gestures.
 | **画面左側 上下スワイプ / Left Vertical Swipe** | 輝度調整 / Brightness | 画面の明るさを 0% 〜 100% でスムーズに微調整 / Smoothly adjust screen brightness from 0% to 100% |
 | **画面右側 上下スワイプ / Right Vertical Swipe** | 音量調整 / Volume | メディア音量を 0% 〜 100% で直感的に調整 / Intuitively adjust media volume from 0% to 100% |
 | **左側ダブルタップ / Left Double-Tap** | 10秒巻き戻し / 10s Rewind | 動画を10秒前へシーク / Seek 10 seconds backward |
+| **左側トリプルタップ / Left Triple-Tap** | 動画の先頭に戻す / Rewind to Start | 素早く3回タップで動画の先頭（0:00）に即座に戻る / Rapid 3 taps immediately rewinds to the beginning of the video (0:00) |
 | **右側ダブルタップ / Right Double-Tap** | 10秒早送り / 10s Forward | 動画を10秒先へシーク / Seek 10 seconds forward |
+| **「前へ」ボタン / Previous Button** | 先頭復帰 / 前の動画 / Rewind / Previous | 3秒以上再生中は「動画の先頭」へ戻る。3秒以内または長押しで「前の動画」へ移動 / Seeks to start if playing > 3s; goes to previous video if <= 3s or on long-press |
 | **画面長押し / Long Press** | 2.0倍速再生 / 2.0x Fast Forward | 押している間だけ2.0倍速で再生、離すと元の速度に復帰 / Plays at 2.0x while holding, restores original speed on release |
 | **画面ロック / Screen Lock** | 誤操作防止 / Lock Touch | コントロールバーの鍵アイコンでジェスチャーとタップ操作をロック / Lock gestures and controls via the lock icon on the top bar |
 | **ABループ / AB Loop** | 区間繰り返し / Segment Repeat | A点とB点を指定して特定シーンのみを繰り返しループ再生 / Loop a specific scene by setting A and B points |
@@ -139,6 +141,13 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.19 (2026-10-02)
+- **「動画の先頭に戻す」機能の追加 / Rewind to Start**:
+  * **「前へ」ボタンのスマート化**: 3秒以上再生中に「前へ」ボタンを押すと、動画の先頭（0:00）にシーク。3秒以内または長押しで「前の動画」へ移動。PiP操作にも連動。 / Smart Previous button: rewinds to 0:00 if playing > 3s; goes to previous file if <= 3s or long-pressed. Works in PiP as well.
+  * **左側トリプルタップ操作**: 画面左側を素早く3回タップするだけで、一瞬で動画の先頭（0:00）に戻るジェスチャーを追加。 / Added left-side rapid triple-tap gesture to immediately rewind to the beginning (0:00).
+  * **インジケーター表示**: 先頭復帰時に画面中央へ「0:00」の視覚的フィードバックを表示。 / Visual indicator feedback ("0:00") when rewinding to start.
+  * **最新APK提供 / Latest APK**: 最新ビルド `app-debug.apk` を更新。 / Updated bundled `app-debug.apk`.
 
 ### v1.2.18 (2026-09-30)
 - **SMB認証情報の暗号化 / Encrypted SMB Credentials**:

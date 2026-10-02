@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.18
+# 技術仕様書 (Technical Specifications) - v1.2.19
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -12,7 +12,13 @@ Vivid F Player is an Android video player specialized for watching videos in off
 
 ## バージョン履歴 / Version History
 
-### v1.2.18 (Current)
+### v1.2.19 (Current)
+- **Rewind to Start**:
+  - `btnPrevious` incorporates standard 3-second seek rule: if playback position > 3000ms, seeks to 0:00 (`seekTo(0)`) and shows overlay indicator; if <= 3000ms, switches to previous video. Long-press on `btnPrevious` forces previous video switch regardless of position.
+  - Left-side triple-tap detection in `setupGestures` allows rapid 3-tap gesture to rewind to 0:00 without delay to double-tap seeking.
+  - PiP previous action (`PIP_CONTROL_PREVIOUS`) shares the 3-second smart rewind logic.
+
+### v1.2.18
 - **SmbCredentialStore**: SMB URLs never carry user-info. Credentials are stored per `host[:port]/share` in `smb_credentials` prefs, encrypted with an Android Keystore AES-256-GCM key (`vivid_smb_credentials`), and supplied to jcifs through `CIFSContext.withCredentials(NtlmPasswordAuthenticator)`. Domain accounts accept `DOMAIN;user` or `DOMAIN\user`. Legacy credential-bearing URLs in `folder_uris` and `resume_prefs` are migrated on first access. Undecryptable entries (e.g. after restore on another device) are dropped. The prefs file is excluded via `backup_rules.xml` / `data_extraction_rules.xml`.
 - **AppSettings**: A process-wide singleton holds the playback settings as `StateFlow`s plus the sleep timer, so every `MainViewModel` instance (one per activity) observes the same values.
 - **Foreground service guard**: `PlaybackService` is only started when the player is actually playing or buffering; `playWhenReady` alone stays true in `STATE_ENDED`.
