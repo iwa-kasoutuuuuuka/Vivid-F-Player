@@ -31,14 +31,16 @@ object PlayerHolder {
                 .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
                 .setEnableDecoderFallback(true)
 
-            // B: Buffering Optimization for stability
+            // B: Buffering Optimization for instant playback & seamless seek
             val loadControl: LoadControl = DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
-                    30_000, // Min buffer
-                    60_000, // Max buffer
-                    2_500,  // Buffer for playback
-                    5_000   // Buffer for playback after rebuffer
+                    15_000, // Min buffer (15s for lower memory & faster responsiveness)
+                    50_000, // Max buffer (50s)
+                    600,    // Buffer for playback (0.6s instant start)
+                    1_500   // Buffer for playback after rebuffer (1.5s)
                 )
+                .setBackBuffer(15_000, true) // Retain 15s back-buffer for instant rewind
+                .setPrioritizeTimeOverSizeThresholds(true)
                 .build()
 
             // Support for SMB and other protocols

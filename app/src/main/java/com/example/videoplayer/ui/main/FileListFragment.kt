@@ -62,6 +62,8 @@ class FileListFragment : Fragment() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
+        binding.recyclerView.setHasFixedSize(true)
+        binding.recyclerView.setItemViewCacheSize(20)
 
         binding.tvFolderName.text = folderUri.lastPathSegment
         binding.btnBack.setOnClickListener {
