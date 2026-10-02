@@ -103,6 +103,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private var scaleFactor = 1.0f
     private lateinit var scaleGestureDetector: ScaleGestureDetector
+    private var prePocketBrightness: Float = -1f
 
     private val statusUpdateHandler = Handler(Looper.getMainLooper())
     private val statusUpdateRunnable = object : Runnable {
@@ -264,10 +265,17 @@ class PlayerActivity : AppCompatActivity() {
 
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == Player.STATE_READY) {
+                applyVoiceBoost()
+            }
             if (playbackState == Player.STATE_ENDED) {
                 saveCurrentPosition()
                 playNext()
             }
+        }
+
+        override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+            applyVoiceBoost()
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -351,6 +359,9 @@ class PlayerActivity : AppCompatActivity() {
             abLoopB = -1L
             abLoopState = ABLoopState.OFF
             updateABLoopButtonUI()
+
+            // Reset Zoom
+            applyZoom(1.0f)
         }
     }
 
@@ -565,6 +576,8 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun showControls() {
         updateStatusInfo()
+        statusUpdateHandler.removeCallbacks(statusUpdateRunnable)
+        statusUpdateHandler.postDelayed(statusUpdateRunnable, 10000L)
         binding.controlsLayout.visibility = View.VISIBLE
         binding.bottomControls.visibility = View.VISIBLE
         showSystemBars()
@@ -573,12 +586,23 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun enterPocketMode() {
+        prePocketBrightness = window.attributes.screenBrightness
+        val lp = window.attributes
+        lp.screenBrightness = 0.01f
+        window.attributes = lp
+
         binding.layoutPocketMode.visibility = View.VISIBLE
         hideControls()
+        hideSystemBars()
         showIndicator(R.drawable.ic_screen_off, -1, getString(R.string.pocket_mode))
     }
 
     private fun exitPocketMode() {
+        if (prePocketBrightness >= 0) {
+            val lp = window.attributes
+            lp.screenBrightness = prePocketBrightness
+            window.attributes = lp
+        }
         binding.layoutPocketMode.visibility = View.GONE
         showControls()
     }
@@ -611,6 +635,7 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun hideControls() {
+        statusUpdateHandler.removeCallbacks(statusUpdateRunnable)
         binding.controlsLayout.visibility = View.GONE
         binding.bottomControls.visibility = View.GONE
         hideSystemBars()
@@ -730,9 +755,8 @@ class PlayerActivity : AppCompatActivity() {
         })
 
         binding.playerView.setOnTouchListener { _, event ->
-            if (event.pointerCount > 1) {
-                scaleGestureDetector.onTouchEvent(event)
-            } else {
+            scaleGestureDetector.onTouchEvent(event)
+            if (!scaleGestureDetector.isInProgress && event.pointerCount == 1) {
                 gestureDetector.onTouchEvent(event)
             }
             if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
@@ -748,15 +772,12 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun applyZoom(factor: Float) {
         scaleFactor = factor
-        val surface = binding.playerView.videoSurfaceView
-        if (surface != null) {
-            surface.scaleX = factor
-            surface.scaleY = factor
-        } else {
-            binding.playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)?.let {
-                it.scaleX = factor
-                it.scaleY = factor
-            }
+        val target = binding.playerView.videoSurfaceView ?: binding.playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)
+        target?.let {
+            it.pivotX = it.width / 2f
+            it.pivotY = it.height / 2f
+            it.scaleX = factor
+            it.scaleY = factor
         }
     }
 
@@ -885,7 +906,10 @@ class PlayerActivity : AppCompatActivity() {
         super.onStart()
         binding.playerView.player = playerManager.player
         abLoopHandler.post(abLoopRunnable)
-        statusUpdateHandler.post(statusUpdateRunnable)
+        if (binding.controlsLayout.visibility == View.VISIBLE) {
+            updateStatusInfo()
+            statusUpdateHandler.post(statusUpdateRunnable)
+        }
         applyVoiceBoost()
     }
 

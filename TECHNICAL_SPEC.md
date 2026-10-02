@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.20
+# 技術仕様書 (Technical Specifications) - v1.2.21
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -12,7 +12,22 @@ Vivid F Player is an Android video player specialized for watching videos in off
 
 ## バージョン履歴 / Version History
 
-### v1.2.20 (Current)
+### v1.2.21 (Current)
+- **Settings Stability & RadioGroup Bug Fix**:
+  - Explicit IDs assigned to all `RadioButton` components (`rb_speed_*`, `rb_skip_*`, `rb_long_*`) preventing selection desynchronization and `NO_ID` clearing in `SettingsBottomSheet`.
+- **Gesture Conflict Prevention**:
+  - Multitouch pinch zoom actively isolates single-touch scroll events (`!scaleGestureDetector.isInProgress && event.pointerCount == 1`), eliminating accidental brightness/volume jumps during pinch operations.
+- **Pinch Zoom Centering & Video Switch Reset**:
+  - Explicitly centers zoom pivot (`pivotX = width / 2f`, `pivotY = height / 2f`).
+  - Automatically resets zoom scale to 1.0x on video transition in `playVideo`.
+- **AudioFx Voice Boost Lifecycle Hooking**:
+  - Automatically re-applies `LoudnessEnhancer` upon `STATE_READY` and `onTracksChanged`, guaranteeing speech boost when audio session ID stabilizes.
+- **Pocket Mode Backlight Dimming**:
+  - Dims screen brightness to `0.01f` and hides system bars upon entering Pocket Mode, restoring user brightness on exit for true ultra-low battery consumption.
+- **Background CPU Throttling**:
+  - `statusUpdateHandler` is paused while controls are hidden, eliminating background battery polling during video playback.
+
+### v1.2.20
 - **Camping & Power Saving Suite**:
   - **Pocket Mode**: Complete screen blackout overlay (`layout_pocket_mode`) with touch consumption. Allows audio and video playback while walking or in tent/pocket without accidental inputs; single tap wakes up.
   - **Extra Dim (Night Mode)**: 40% opaque dark overlay (`view_night_overlay`) toggled via settings to prevent eye fatigue in dark campsites.

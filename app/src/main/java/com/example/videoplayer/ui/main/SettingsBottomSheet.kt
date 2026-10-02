@@ -35,10 +35,10 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 viewModel.playbackSpeed.collect { speed ->
                     when (speed) {
-                        0.5f -> binding.rgSpeed.check(binding.rgSpeed.getChildAt(0).id)
-                        1.0f -> binding.rgSpeed.check(binding.rgSpeed.getChildAt(1).id)
-                        1.5f -> binding.rgSpeed.check(binding.rgSpeed.getChildAt(2).id)
-                        2.0f -> binding.rgSpeed.check(binding.rgSpeed.getChildAt(3).id)
+                        0.5f -> binding.rgSpeed.check(R.id.rb_speed_05)
+                        1.0f -> binding.rgSpeed.check(R.id.rb_speed_10)
+                        1.5f -> binding.rgSpeed.check(R.id.rb_speed_15)
+                        2.0f -> binding.rgSpeed.check(R.id.rb_speed_20)
                     }
                 }
             }
@@ -46,10 +46,10 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         binding.rgSpeed.setOnCheckedChangeListener { _, checkedId ->
             val speed = when (checkedId) {
-                binding.rgSpeed.getChildAt(0).id -> 0.5f
-                binding.rgSpeed.getChildAt(1).id -> 1.0f
-                binding.rgSpeed.getChildAt(2).id -> 1.5f
-                binding.rgSpeed.getChildAt(3).id -> 2.0f
+                R.id.rb_speed_05 -> 0.5f
+                R.id.rb_speed_10 -> 1.0f
+                R.id.rb_speed_15 -> 1.5f
+                R.id.rb_speed_20 -> 2.0f
                 else -> 1.0f
             }
             viewModel.setPlaybackSpeed(speed)
@@ -60,10 +60,10 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 viewModel.skipSeconds.collect { sec ->
                     when (sec) {
-                        5 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(0).id)
-                        10 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(1).id)
-                        30 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(2).id)
-                        60 -> binding.rgSkipDuration.check(binding.rgSkipDuration.getChildAt(3).id)
+                        5 -> binding.rgSkipDuration.check(R.id.rb_skip_5)
+                        10 -> binding.rgSkipDuration.check(R.id.rb_skip_10)
+                        30 -> binding.rgSkipDuration.check(R.id.rb_skip_30)
+                        60 -> binding.rgSkipDuration.check(R.id.rb_skip_60)
                     }
                 }
             }
@@ -71,10 +71,10 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         binding.rgSkipDuration.setOnCheckedChangeListener { _, checkedId ->
             val sec = when (checkedId) {
-                binding.rgSkipDuration.getChildAt(0).id -> 5
-                binding.rgSkipDuration.getChildAt(1).id -> 10
-                binding.rgSkipDuration.getChildAt(2).id -> 30
-                binding.rgSkipDuration.getChildAt(3).id -> 60
+                R.id.rb_skip_5 -> 5
+                R.id.rb_skip_10 -> 10
+                R.id.rb_skip_30 -> 30
+                R.id.rb_skip_60 -> 60
                 else -> 10
             }
             viewModel.setSkipSeconds(sec)
@@ -85,10 +85,10 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
             viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
                 viewModel.longPressSpeed.collect { speed ->
                     when (speed) {
-                        1.5f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(0).id)
-                        2.0f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(1).id)
-                        2.5f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(2).id)
-                        3.0f -> binding.rgLongPressSpeed.check(binding.rgLongPressSpeed.getChildAt(3).id)
+                        1.5f -> binding.rgLongPressSpeed.check(R.id.rb_long_15)
+                        2.0f -> binding.rgLongPressSpeed.check(R.id.rb_long_20)
+                        2.5f -> binding.rgLongPressSpeed.check(R.id.rb_long_25)
+                        3.0f -> binding.rgLongPressSpeed.check(R.id.rb_long_30)
                     }
                 }
             }
@@ -96,10 +96,10 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         binding.rgLongPressSpeed.setOnCheckedChangeListener { _, checkedId ->
             val speed = when (checkedId) {
-                binding.rgLongPressSpeed.getChildAt(0).id -> 1.5f
-                binding.rgLongPressSpeed.getChildAt(1).id -> 2.0f
-                binding.rgLongPressSpeed.getChildAt(2).id -> 2.5f
-                binding.rgLongPressSpeed.getChildAt(3).id -> 3.0f
+                R.id.rb_long_15 -> 1.5f
+                R.id.rb_long_20 -> 2.0f
+                R.id.rb_long_25 -> 2.5f
+                R.id.rb_long_30 -> 3.0f
                 else -> 2.0f
             }
             viewModel.setLongPressSpeed(speed)

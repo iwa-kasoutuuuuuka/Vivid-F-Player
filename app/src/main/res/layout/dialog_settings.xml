@@ -33,10 +33,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0.5x" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.0x" android:textColor="#FFFFFF" android:checked="true" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5x" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0x" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_speed_05" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_speed_10" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.0x" android:textColor="#FFFFFF" android:checked="true" />
+            <RadioButton android:id="@+id/rb_speed_15" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_speed_20" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0x" android:textColor="#FFFFFF" />
         </RadioGroup>
 
         <!-- スキップ秒数 -->
@@ -53,10 +53,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5s" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10s" android:textColor="#FFFFFF" android:checked="true" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="30s" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="60s" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_skip_5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5s" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_skip_10" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10s" android:textColor="#FFFFFF" android:checked="true" />
+            <RadioButton android:id="@+id/rb_skip_30" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="30s" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_skip_60" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="60s" android:textColor="#FFFFFF" />
         </RadioGroup>
 
         <!-- 長押し倍速 -->
@@ -73,10 +73,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5x" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0x" android:textColor="#FFFFFF" android:checked="true" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.5x" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3.0x" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_long_15" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_long_20" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.0x" android:textColor="#FFFFFF" android:checked="true" />
+            <RadioButton android:id="@+id/rb_long_25" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2.5x" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_long_30" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3.0x" android:textColor="#FFFFFF" />
         </RadioGroup>
 
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />

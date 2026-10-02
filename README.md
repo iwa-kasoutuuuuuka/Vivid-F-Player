@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.20
+- **Current Version**: v1.2.21
 - **Latest Build**: [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) ([直接ダウンロード / Direct Download](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk))
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -23,7 +23,7 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 
 - **🎬 モダンな再生コントロール / Modern Playback**: YouTube風ジェスチャー（長押し倍速、ダブルタップスキップ）、ピンチズーム（1.0x〜3.0x）、画面ロック、ABループ機能。 / YouTube-style gestures, Pinch Zoom (1.0x–3.0x), Screen Lock, and AB Loop.
 - **⛺ キャンプ・省電力特化機能 / Camping & Power Saving**:
-  - **画面完全消灯ポケットモード (Pocket Mode)**: 画面を完全ブラックアウトし誤タッチを防止しながら音声・動画を継続再生。ワンタップで復帰。 / Black out screen with touch protection while playing audio; one tap to wake.
+  - **画面完全消灯ポケットモード (Pocket Mode)**: 画面ブラックアウトに加え、画面輝度を極小値（0.01f）へ強制減光。誤タッチ防止と超省電力を両立し、ワンタップで元の輝度・画面へ即復帰。 / Screen blackout with hardware backlight dimming (0.01f) and touch protection; one tap restores original brightness.
   - **極低輝度ナイトモード (Extra Dim / Night Mode)**: 真っ暗なテント内でも眩しくない半透明ブラックオーバーレイ。 / Soft dimming overlay for pitch-dark tents.
   - **時計＆バッテリー常時確認 (Status Bar)**: コントロールバーに現在時刻とバッテリー残量（🔋%）を表示。 / Real-time clock and battery level on controls.
   - **5分自動スリープ保護 (Sleep Protection)**: 一時停止から5分経過で画面常時点灯を解除しバッテリー激減・寝落ちを防止。 / Automatically releases wake-lock 5 min after pausing.

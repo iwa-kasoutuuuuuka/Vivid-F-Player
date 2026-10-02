@@ -12,6 +12,16 @@
         android:background="#000000"
         app:use_controller="true" />
 
+    <!-- Night Mode Overlay (Extra Dim) -->
+    <View
+        android:id="@+id/view_night_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99000000"
+        android:visibility="gone"
+        android:clickable="false"
+        android:focusable="false" />
+
     <!-- Custom Overlay for Back Button and Title -->
     <LinearLayout
         android:id="@+id/controls_layout"
@@ -230,15 +240,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Night Mode Overlay (Extra Dim) -->
-    <View
-        android:id="@+id/view_night_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#99000000"
-        android:visibility="gone"
-        android:clickable="false"
-        android:focusable="false" />
 
     <!-- Pocket Mode Fullscreen Overlay -->
     <FrameLayout
