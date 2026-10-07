@@ -73,6 +73,35 @@ The video player screen supports intuitive touch operations and gestures.
 
 ---
 
+## ⚙️ 設定メニュー詳細 / Settings Menu Options
+
+再生画面上部の歯車アイコン（⚙️）または一覧画面の設定ボタンから、利用スタイルに合わせた柔軟なカスタマイズが可能です。設定は即座に反映され、プロセス全体で同期されます。
+From the gear icon (⚙️) on the playback screen or settings on the list screen, you can customize options to match your watching style. Settings apply immediately and synchronize across the app.
+
+- **⏩ スキップ秒数 / Double-Tap Skip Duration**:
+  - `5秒` / `10秒 (標準)` / `30秒` / `60秒`
+  - 画面左右のダブルタップでスキップする秒数を好みに合わせて選択できます。 / Configure the forward/rewind seek duration for double-tap gestures.
+- **⚡ 長押し倍速 / Fast-Forward Speed**:
+  - `1.5x` / `2.0x (標準)` / `2.5x` / `3.0x`
+  - 再生中に画面を長押ししている間の早送り再生速度を指定できます。指を離すと元の再生速度に戻ります。 / Set the playback speed while holding down the screen. Returns to normal speed upon release.
+- **🗣️ ボイスブースト / Voice Boost**:
+  - `ON / OFF`
+  - Android標準の音響効果（`LoudnessEnhancer`）を活用し、セリフや会話音声をくっきり強調（+8dB）します。キャンプ場の焚き火や川のせせらぎ、屋外の風音、小音量視聴時でも声が埋もれず聞き取りやすくなります。 / Enhances human voices (+8dB) using hardware audio effects. Great for outdoor ambient noise like campfires.
+- **🌙 ナイトモード (極低輝度) / Night Mode (Extra Dim)**:
+  - `ON / OFF`
+  - 端末の最小輝度設定よりもさらに暗くする半透明ブラックフィルターを適用します。真っ暗なテント内や寝室での視聴時でも、目への刺激を抑え快適に動画を楽しめます。 / Applies a gentle translucent dark overlay below the system minimum brightness for pitch-black tents or bedrooms.
+- **🎵 バックグラウンド再生 / Background Playback**:
+  - `ON / OFF`
+  - 他のアプリに切り替えたり、画面をオフ（スリープ）にしても音声の再生を継続します。 / Keeps playing audio even when switching apps or locking the screen.
+- **📺 ホームでPiP表示 / Picture-in-Picture on Home**:
+  - `ON / OFF`
+  - 再生中にホームボタンやホームジェスチャーで戻った際、自動的に画面隅の小型フローティング小窓（PiP）に切り替わります。 / Automatically transitions into a floating PiP window when returning Home during playback.
+- **⏱️ おやすみタイマー / Sleep Timer**:
+  - `オフ` / `15分` / `30分` / `45分` / `60分` / `90分` / `120分`
+  - 指定した時間が経過すると自動で再生を停止します。 / Automatically stops playback after the specified duration.
+
+---
+
 ## 🔒 SMB共有の設定とセキュリティ / SMB Setup & Security
 
 自宅のNASやPCの共有フォルダを追加し、Wi-Fi経由で大容量の動画を直接ストリーミング再生できます。
@@ -162,6 +191,62 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.23 (2026-10-07)
+- **高速ファイル走査のNull安全性向上 / Fast Batch Query Null-Safety & Fallback**:
+  * `tryFastQuery` 内での Cursor 文字列取得時の Null チェックを徹底強化し、安全なフォールバック機構を導入。 / Hardened null checks on Cursor string retrieval in `tryFastQuery` with safe fallback to legacy traversal.
+- **字幕キャッシュのプロセス共有 / Process-Wide Shared Subtitle Cache**:
+  * 一覧画面走査時の字幕インデックスを共有キャッシュ化し、動画再生開始時のファイル探索待ち時間を 0ms に短縮。 / Shared directory subtitle index across processes, enabling 0ms subtitle resolution on initial playback.
+- **字幕ファイル厳密マッチング / Accurate Subtitle Matching**:
+  * 部分一致から完全一致および区切り文字（`.`, `_`）判定へ刷新し、似た名前の動画ファイル間での字幕誤紐付けを防止。 / Strict base-name and delimited language suffix matching prevents incorrect subtitle pairing.
+- **対応動画フォーマットの大幅拡張 / Extended Video Format Support**:
+  * `.mov`, `.webm`, `.ts`, `.flv`, `.m4v`, `.3gp` の再生に新規対応（ローカルおよびSMB共有）。 / Added support for `.mov`, `.webm`, `.ts`, `.flv`, `.m4v`, and `.3gp` across local and SMB repositories.
+- **大文字小文字対応の自然順ソート / Case-Insensitive Zero-Allocation Natural Sort**:
+  * `EP01` と `ep02` のような大文字小文字が混在したファイル名でも自然順で美しく整列。メモリ割り当てゼロで高速。 / Zero-allocation natural sort now handles mixed-case filenames (`EP01` vs `ep02`) perfectly.
+- **最新APK提供 / Latest APK**: 最新ビルド `app-debug.apk` を更新。 / Updated bundled `app-debug.apk`.
+
+### v1.2.22 (2026-10-07)
+- **爆速再生開始＆バッファ最適化 / Instant Playback & Buffer Optimization**:
+  * 再生開始バッファを 600ms（従来の1/4）にチューニングし、タップ直後の再生待ち時間を大幅削減。 / Tuned start buffer to 600ms, cutting launch latency by ~75%.
+  * 15秒のバックバッファ（`setBackBuffer(15_000, true)`）を常時保持し、10秒巻き戻し（ダブルタップ）時にメモリから遅延ゼロで瞬時に巻き戻し再生。 / 15s retained back-buffer enables 0ms instant rewinds without re-buffering.
+- **ローカルフォルダ走査の数十倍高速化 / Fast ContentResolver Batch Query**:
+  * `DocumentsContract` による直接一括クエリにより、100本以上の動画が含まれる大容量フォルダでも瞬時に読み込み完了（従来の10〜30倍高速）。 / Replaced slow iterative file calls with native `DocumentsContract` batch queries (10x–30x faster scanning).
+- **字幕インメモリキャッシュによるシームレス連続再生 / In-Memory Subtitle Indexing**:
+  * 初回フォルダ走査時に字幕ファイルをインデックス化。次の動画へ進む際のファイル一覧再スキャンを完全撤廃し、トラック切り替え時の1〜3秒の待機時間を完全解消。 / Built in-memory subtitle index during folder load, eliminating 1–3s latency during playlist track transitions.
+- **ゼロアロケーション自然順ソート / Zero-Allocation NaturalOrderComparator**:
+  * ソート時の文字列切り出しやオブジェクト生成をゼロ化し、大量動画スクロール時のGC負荷を排除。 / In-place pointer comparison eliminates all memory allocations during sorting.
+- **RecyclerView描画最適化 / RecyclerView Measure Throttling**:
+  * リスト項目の固定サイズ化（80dp）とキャッシュ強化により、スクロールの引っ掛かりを解消。 / Locked row heights with `hasFixedSize` and tuned view cache for smoother scrolling.
+
+### v1.2.21 (2026-10-06)
+- **設定ダイアログの安定性向上 / Settings Stability & RadioGroup Bug Fix**:
+  * 設定画面のラジオボタンIDを明示化し、選択状態の不整合や解除バグを修正。 / Explicit IDs assigned to all settings radio buttons, fixing selection desync bugs.
+- **ジェスチャー競合ガード / Gesture Conflict Prevention**:
+  * ピンチズーム操作中に音量や明るさが誤って変動しないようマルチタッチ排他制御を追加。 / Multitouch gesture isolation prevents accidental brightness/volume adjustments during pinch zoom.
+- **ピンチズーム中央ピボット固定＆動画切替時等倍リセット / Pinch Zoom Centering & Auto Reset**:
+  * 画面中央を基準に拡大縮小するよう固定し、別動画への切り替え時に自動で1.0x等倍にリセット。 / Centered zoom pivot and auto-reset zoom scale to 1.0x on video transition.
+- **ボイスブーストのライフサイクル自動再適用 / AudioFx Voice Boost Lifecycle Hooking**:
+  * 再生準備完了やトラック切り替え時に `LoudnessEnhancer` を自動再アタッチし、確実な音声強化を保証。 / Automatically rebinds `LoudnessEnhancer` upon player ready and track change.
+- **ポケットモード時の画面バックライト極小化 / Pocket Mode Backlight Dimming**:
+  * 画面ブラックアウトに加え、ハードウェア輝度を `0.01f` に強制設定。ポケット内での発熱と電池消費を極小化。 / Forces backlight brightness to `0.01f` on Pocket Mode entry for true ultra-low battery consumption.
+- **バックグラウンドCPU負荷低減 / Background CPU Throttling**:
+  * コントロール非表示中はバッテリー監視タイマーを停止し、不要なCPUウェイクアップを防止。 / Pauses battery/time polling while controls are hidden to conserve CPU and battery.
+
+### v1.2.20 (2026-10-06)
+- **キャンプ・省電力特化機能スイート / Camping & Power Saving Suite**:
+  * **ポケットモード (Pocket Mode)**: 画面を完全ブラックアウトし誤タッチをガード。動画・音声を再生したままポケットやテント内に置くことができ、ワンタップで即復帰。 / Screen blackout with touch guard for running audio/video in pocket; single tap wakes up.
+  * **極低輝度ナイトモード (Extra Dim)**: 端末の最小輝度を下回るダークオーバーレイ。夜のテントや暗室での眩しさを大幅低減。 / Translucent overlay darker than system minimum brightness for pitch-dark tents.
+  * **時計＆バッテリー常時確認 (Status Bar)**: コントロールバーにシステム時刻とバッテリー残量（🔋%）を表示。 / Real-time clock and battery level monitor on top controls.
+  * **5分自動スリープ保護 (Auto-Sleep Protection)**: 一時停止したまま5分経過すると画面常時点灯を解除し、寝落ち時の電池消耗を防止。 / Releases wake-lock 5 minutes after pausing to prevent overnight battery drain.
+- **音響強化 / Audio Enhancements**:
+  * **ボイスブースト (Voice Boost)**: ハードウェアエフェクト（`LoudnessEnhancer`）でセリフや会話を +8dB 強調。焚き火や環境音に負けない明瞭な音声を再生。 / Speech intelligibility boost (+8dB gain) over ambient outdoor/bonfire noise.
+  * **音声トラック切り替え (Audio Track Selection)**: 主音声・副音声や多言語音声をツールバーから手軽に選択可能。 / Switch between multiple audio tracks and secondary audio channels.
+- **再生操作の拡張 / Enhanced Controls & Gestures**:
+  * **ピンチズーム (Pinch Zoom)**: 2本指ピンチで 1.0x 〜 3.0x までシームレス拡大。拡大中のダブルタップで即座に等倍リセット。 / Seamless 1.0x–3.0x pinch-to-zoom; double-tap to reset.
+  * **ダブルタップスキップ秒数の設定**: 設定画面から 5s / 10s / 30s / 60s を選択可能。 / Configurable double-tap skip duration (5s/10s/30s/60s).
+  * **長押し倍速の設定**: 設定画面から 1.5x / 2.0x / 2.5x / 3.0x を選択可能。 / Configurable long-press fast-forward speed (1.5x/2.0x/2.5x/3.0x).
+- **未視聴（NEW）バッジ表示 / Unwatched Video Badge**:
+  * 未再生の動画に「未視聴」バッジを表示。視聴済みの進捗バーと合わせて視聴ステータスが一目瞭然に。 / Vibrant "NEW" pill badge for unplayed videos.
 
 ### v1.2.19 (2026-10-02)
 - **「動画の先頭に戻す」機能の追加 / Rewind to Start**:
