@@ -1,6 +1,5 @@
 package com.example.videoplayer.ui.main
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -17,7 +16,7 @@ class FolderSelectionFragment : Fragment() {
     private val selectFolderLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
-        uri?.let { (activity as MainActivity).onFolderSelected(it) }
+        uri?.let { (activity as? MainActivity)?.onFolderSelected(it) }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {

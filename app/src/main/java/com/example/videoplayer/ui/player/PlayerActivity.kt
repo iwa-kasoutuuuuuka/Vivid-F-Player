@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.graphics.drawable.Icon
 import android.content.res.Configuration
+import android.graphics.drawable.Icon
 import android.media.AudioManager
 import android.media.audiofx.LoudnessEnhancer
 import android.net.Uri
@@ -25,20 +25,18 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MimeTypes
-import androidx.media3.common.C
-import androidx.media3.common.Player
-import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.Player
+import androidx.media3.ui.AspectRatioFrameLayout
 import com.example.videoplayer.R
 import com.example.videoplayer.data.manager.ResumeManager
 import com.example.videoplayer.data.model.VideoFile
@@ -49,6 +47,9 @@ import com.example.videoplayer.player.PlaybackService
 import com.example.videoplayer.player.PlayerManager
 import com.example.videoplayer.ui.main.MainViewModel
 import com.example.videoplayer.ui.main.SettingsBottomSheet
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -95,6 +96,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private var resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
     private var lastLeftDoubleTapTime = 0L
+    private var lastTripleTapTime = 0L
 
     private var skipSeconds = 10
     private var fastForwardSpeed = 2.0f
@@ -103,7 +105,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private var scaleFactor = 1.0f
     private lateinit var scaleGestureDetector: ScaleGestureDetector
-    private var prePocketBrightness: Float = -1f
+    private var prePocketBrightness: Float = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
 
     private val statusUpdateHandler = Handler(Looper.getMainLooper())
     private val statusUpdateRunnable = object : Runnable {
@@ -135,6 +137,21 @@ class PlayerActivity : AppCompatActivity() {
         binding.playerView.useController = false
         binding.playerView.keepScreenOn = true
 
+        // 画面ロック・ポケットモード中の誤スワイプ（システム戻るジェスチャー）で終了しないよう保護
+        // Guard against accidental system Back gestures while in Pocket Mode or Screen Lock
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when {
+                    binding.layoutPocketMode.visibility == View.VISIBLE -> exitPocketMode()
+                    isLocked -> android.widget.Toast.makeText(this@PlayerActivity, "Screen Locked", android.widget.Toast.LENGTH_SHORT).show()
+                    else -> {
+                        isEnabled = false
+                        onBackPressedDispatcher.onBackPressed()
+                    }
+                }
+            }
+        })
+
         applySystemBarInsets()
         setupSettingsObservers()
         handleIntent()
@@ -149,6 +166,13 @@ class PlayerActivity : AppCompatActivity() {
         )
         // 起動直後に表示されているコントロールも自動で隠す / Auto-hide the controls shown at launch too
         hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        saveCurrentPosition()
+        setIntent(intent)
+        handleIntent()
     }
 
     // エッジツーエッジ表示でステータスバー/ナビゲーションバーにコントロールが重ならないようにする
@@ -168,7 +192,12 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun setupSettingsObservers() {
         lifecycleScope.launch {
-            viewModel.playbackSpeed.collect { playerManager.speed = it }
+            viewModel.playbackSpeed.collect {
+                originalSpeed = it
+                if (!isFastForwarding) {
+                    playerManager.speed = it
+                }
+            }
         }
         lifecycleScope.launch {
             viewModel.isBackgroundPlayEnabled.collect { isBackgroundPlayEnabled = it }
@@ -221,10 +250,10 @@ class PlayerActivity : AppCompatActivity() {
         buttons.forEach { button ->
             button.setOnTouchListener { v, event ->
                 when (event.action) {
-                    android.view.MotionEvent.ACTION_DOWN -> {
+                    MotionEvent.ACTION_DOWN -> {
                         v.animate().scaleX(0.9f).scaleY(0.9f).setDuration(100).start()
                     }
-                    android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                    MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                         v.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start()
                     }
                 }
@@ -241,24 +270,35 @@ class PlayerActivity : AppCompatActivity() {
             intent.getParcelableExtra<Uri>("video_uri")
         }
         folderUri = intent.getStringExtra("folder_uri")
-        currentFileName = videoUri?.lastPathSegment
-        currentVideoUri = videoUri
 
+        playJob?.cancel()
         folderUri?.let { uriString ->
-            lifecycleScope.launch {
+            playJob = lifecycleScope.launch {
                 videoList = videoRepository.getVideoFiles(Uri.parse(uriString))
-                currentIndex = videoList.indexOfFirst { it.uri == videoUri }
-                if (currentIndex != -1) {
-                    playVideo(currentIndex)
+                val idx = videoList.indexOfFirst { it.uri == videoUri }
+                if (idx != -1) {
+                    playVideo(idx)
                 } else if (videoUri != null) {
-                    val pos = resumeManager.getFileResumePosition(videoUri.toString())
+                    currentIndex = -1
+                    currentVideoUri = videoUri
+                    currentFileName = videoUri.lastPathSegment
+                    updateFileNameDisplay()
+                    val savedPos = resumeManager.getFileResumePosition(videoUri.toString())
+                    val savedDur = resumeManager.getFileDuration(videoUri.toString())
+                    val pos = if (savedDur > 0 && savedPos >= savedDur - 3000) 0L else savedPos
                     playerManager.play(videoUri, pos)
                 }
             }
         } ?: run {
-            videoUri?.let { 
-                val pos = resumeManager.getFileResumePosition(it.toString())
-                playerManager.play(it, pos) 
+            videoUri?.let {
+                currentIndex = -1
+                currentVideoUri = it
+                currentFileName = it.lastPathSegment
+                updateFileNameDisplay()
+                val savedPos = resumeManager.getFileResumePosition(it.toString())
+                val savedDur = resumeManager.getFileDuration(it.toString())
+                val pos = if (savedDur > 0 && savedPos >= savedDur - 3000) 0L else savedPos
+                playerManager.play(it, pos)
             }
         }
     }
@@ -333,12 +373,11 @@ class PlayerActivity : AppCompatActivity() {
 
         // 切り替え前に現在の動画の位置を保存（バックグラウンド連続再生でもレジュームを維持）
         // Save the outgoing video's position so resume survives continuous background playback
-        if (currentIndex != index) saveCurrentPosition()
+        if (currentIndex != -1 && currentIndex != index) saveCurrentPosition()
+        if (isFastForwarding) stopFastForward()
 
         val video = videoList[index]
         currentIndex = index
-        currentVideoUri = video.uri
-        currentFileName = video.name
         
         playJob?.cancel()
         playJob = lifecycleScope.launch {
@@ -351,6 +390,8 @@ class PlayerActivity : AppCompatActivity() {
             val savedDuration = resumeManager.getFileDuration(video.uri.toString())
             // 視聴済み（終端付近）の動画は先頭から / Restart videos that were watched to the end
             val position = if (savedDuration > 0 && savedPosition >= savedDuration - 3000) 0L else savedPosition
+            currentVideoUri = video.uri
+            currentFileName = video.name
             playerManager.play(video, subtitleConfigs, position)
             updateFileNameDisplay()
             
@@ -586,7 +627,9 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun enterPocketMode() {
-        prePocketBrightness = window.attributes.screenBrightness
+        if (binding.layoutPocketMode.visibility != View.VISIBLE) {
+            prePocketBrightness = window.attributes.screenBrightness
+        }
         val lp = window.attributes
         lp.screenBrightness = 0.01f
         window.attributes = lp
@@ -594,16 +637,17 @@ class PlayerActivity : AppCompatActivity() {
         binding.layoutPocketMode.visibility = View.VISIBLE
         hideControls()
         hideSystemBars()
+        updatePipParams()
         showIndicator(R.drawable.ic_screen_off, -1, getString(R.string.pocket_mode))
     }
 
     private fun exitPocketMode() {
-        if (prePocketBrightness >= 0) {
-            val lp = window.attributes
-            lp.screenBrightness = prePocketBrightness
-            window.attributes = lp
-        }
+        val lp = window.attributes
+        // prePocketBrightness が -1.0f (BRIGHTNESS_OVERRIDE_NONE) の場合もシステム輝度へ正しく戻す
+        lp.screenBrightness = prePocketBrightness
+        window.attributes = lp
         binding.layoutPocketMode.visibility = View.GONE
+        updatePipParams()
         showControls()
     }
 
@@ -678,6 +722,7 @@ class PlayerActivity : AppCompatActivity() {
                 if (!isLocked && isLeft && (now - lastLeftDoubleTapTime < 350)) {
                     // 左側トリプルタップ: 動画の先頭に戻す
                     lastLeftDoubleTapTime = 0L
+                    lastTripleTapTime = now
                     playerManager.player.seekTo(0)
                     showIndicator(R.drawable.ic_previous, -1, "0:00")
                     return true
@@ -696,7 +741,7 @@ class PlayerActivity : AppCompatActivity() {
                 
                 // 開始点(e1)からの累積移動距離を使用
                 val deltaY = e1.y - e2.y
-                val height = binding.playerView.height.toFloat()
+                val height = binding.playerView.height.toFloat().coerceAtLeast(1f)
                 val screenWidth = binding.playerView.width.toFloat()
                 
                 if (e2.x < screenWidth / 2) {
@@ -710,7 +755,7 @@ class PlayerActivity : AppCompatActivity() {
                 } else {
                     // 右側: 音量調整 (画面の高さ分スワイプで 0 -> MaxVolume)
                     val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(1)
                     val volumeDelta = ((deltaY / height) * maxVolume).toInt()
                     val newVolume = (initialVolume + volumeDelta).coerceIn(0, maxVolume)
                     audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newVolume, 0)
@@ -720,6 +765,7 @@ class PlayerActivity : AppCompatActivity() {
             }
 
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                if (SystemClock.uptimeMillis() - lastTripleTapTime < 500) return true
                 if (binding.controlsLayout.visibility == View.VISIBLE) hideControls() else showControls()
                 return true
             }
@@ -782,8 +828,10 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun startFastForward() {
+        if (!isFastForwarding) {
+            originalSpeed = viewModel.playbackSpeed.value
+        }
         isFastForwarding = true
-        originalSpeed = playerManager.player.playbackParameters.speed
         playerManager.player.setPlaybackSpeed(fastForwardSpeed)
         binding.tvSpeedIndicator.text = "${fastForwardSpeed}x >>"
         binding.tvSpeedIndicator.visibility = View.VISIBLE
@@ -792,7 +840,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun stopFastForward() {
         isFastForwarding = false
-        playerManager.player.setPlaybackSpeed(originalSpeed)
+        playerManager.player.setPlaybackSpeed(viewModel.playbackSpeed.value)
         binding.tvSpeedIndicator.visibility = View.GONE
     }
 
@@ -853,15 +901,16 @@ class PlayerActivity : AppCompatActivity() {
             builder.setAspectRatio(Rational((ratio * 1000).toInt(), 1000))
         }
         val isPlaying = playerManager.player.isPlaying
+        val isPocketMode = ::binding.isInitialized && binding.layoutPocketMode.visibility == View.VISIBLE
         builder.setActions(listOf(
             pipAction(PIP_CONTROL_PREVIOUS, R.drawable.ic_previous, R.string.pip_previous),
             pipAction(PIP_CONTROL_PLAY_PAUSE, if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play, R.string.pip_play_pause),
             pipAction(PIP_CONTROL_NEXT, R.drawable.ic_next, R.string.pip_next)
         ))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Android 12以降: 再生中にホームへ戻ると自動でスムーズにPiPへ移行
-            // Android 12+: seamlessly auto-enter PiP when going Home while playing
-            builder.setAutoEnterEnabled(isAutoPipEnabled && isPlaying && !isLocked)
+            // Android 12以降: 再生中にホームへ戻ると自動でスムーズにPiPへ移行（ポケットモード・ロック中は除外）
+            // Android 12+: seamlessly auto-enter PiP when going Home while playing (except in Pocket Mode or Locked)
+            builder.setAutoEnterEnabled(isAutoPipEnabled && isPlaying && !isLocked && !isPocketMode)
         }
         return builder.build()
     }
@@ -876,6 +925,9 @@ class PlayerActivity : AppCompatActivity() {
             android.widget.Toast.makeText(this, R.string.pip_not_supported, android.widget.Toast.LENGTH_SHORT).show()
             return
         }
+        if (binding.layoutPocketMode.visibility == View.VISIBLE) {
+            exitPocketMode()
+        }
         hideControls()
         enterPictureInPictureMode(buildPipParams())
     }
@@ -884,8 +936,9 @@ class PlayerActivity : AppCompatActivity() {
         super.onUserLeaveHint()
         // Android 11以前は自動移行がないため、ここで手動でPiPに入る
         // Android 11 and below have no auto-enter, so enter PiP manually here
+        val isPocketMode = binding.layoutPocketMode.visibility == View.VISIBLE
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && hasPipFeature &&
-            isAutoPipEnabled && playerManager.player.isPlaying && !isLocked) {
+            isAutoPipEnabled && playerManager.player.isPlaying && !isLocked && !isPocketMode) {
             enterPip()
         }
     }
@@ -893,6 +946,10 @@ class PlayerActivity : AppCompatActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         if (isInPictureInPictureMode) {
+            if (isFastForwarding) stopFastForward()
+            if (binding.layoutPocketMode.visibility == View.VISIBLE) {
+                exitPocketMode()
+            }
             // PiP中は小窓なのでオーバーレイ類をすべて隠す / Hide all overlays in the small PiP window
             hideHandler.removeCallbacks(hideRunnable)
             hideControls()
@@ -915,6 +972,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        if (isFastForwarding) stopFastForward()
         abLoopHandler.removeCallbacks(abLoopRunnable)
         statusUpdateHandler.removeCallbacks(statusUpdateRunnable)
         sleepTimeoutHandler.removeCallbacks(sleepTimeoutRunnable)
@@ -949,8 +1007,13 @@ class PlayerActivity : AppCompatActivity() {
         val uri = folderUri ?: return
         val fileName = currentFileName ?: return
         val videoUri = currentVideoUri ?: return
-        val duration = playerManager.player.duration.takeIf { it > 0 } ?: 0L
-        resumeManager.saveResumePosition(uri, fileName, videoUri.toString(), playerManager.player.currentPosition, duration)
+        val player = playerManager.player
+        // 再生準備前・エラー時（STATE_IDLE）や別トラック遷移中は誤った位置（0ms等）で上書きしない
+        // Never overwrite saved resume position when player is idle or still switching media items
+        if (player.playbackState == Player.STATE_IDLE) return
+        if (player.currentMediaItem?.localConfiguration?.uri != videoUri) return
+        val duration = player.duration.takeIf { it > 0 } ?: return
+        resumeManager.saveResumePosition(uri, fileName, videoUri.toString(), player.currentPosition, duration)
     }
 
     override fun onDestroy() {

@@ -5,9 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.example.videoplayer.data.manager.ResumeManager
 import com.example.videoplayer.data.model.VideoFile
 import com.example.videoplayer.databinding.ItemVideoFileBinding
-import com.example.videoplayer.data.manager.ResumeManager
 
 class FileListAdapter(private val onClick: (VideoFile) -> Unit) :
     ListAdapter<VideoFile, FileListAdapter.ViewHolder>(DiffCallback) {
@@ -18,9 +18,9 @@ class FileListAdapter(private val onClick: (VideoFile) -> Unit) :
             
             val pos = resumeManager.getFileResumePosition(file.uri.toString())
             val dur = resumeManager.getFileDuration(file.uri.toString())
-            if (pos > 0 && dur > 0) {
+            if (pos > 1000L && dur > 0L) {
                 binding.pbVideoProgress.visibility = android.view.View.VISIBLE
-                binding.pbVideoProgress.progress = ((pos * 100) / dur).toInt()
+                binding.pbVideoProgress.progress = ((pos * 100) / dur).toInt().coerceIn(1, 100)
                 binding.tvUnwatchedBadge.visibility = android.view.View.GONE
             } else {
                 binding.pbVideoProgress.visibility = android.view.View.GONE

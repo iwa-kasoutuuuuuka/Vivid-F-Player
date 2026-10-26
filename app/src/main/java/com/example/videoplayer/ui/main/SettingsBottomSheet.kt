@@ -4,14 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.example.videoplayer.databinding.DialogSettingsBinding
 import com.example.videoplayer.R
+import com.example.videoplayer.databinding.DialogSettingsBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class SettingsBottomSheet : BottomSheetDialogFragment() {
@@ -32,7 +30,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
         
         // 再生速度の監視 / Monitor playback speed
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.playbackSpeed.collect { speed ->
                     when (speed) {
                         0.5f -> binding.rgSpeed.check(R.id.rb_speed_05)
@@ -57,7 +55,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // スキップ秒数の監視 / Monitor skip duration
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.skipSeconds.collect { sec ->
                     when (sec) {
                         5 -> binding.rgSkipDuration.check(R.id.rb_skip_5)
@@ -82,7 +80,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // 長押し倍速の監視 / Monitor long press speed
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.longPressSpeed.collect { speed ->
                     when (speed) {
                         1.5f -> binding.rgLongPressSpeed.check(R.id.rb_long_15)
@@ -107,7 +105,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // ボイスブーストの監視 / Monitor voice boost
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isVoiceBoostEnabled.collect { enabled ->
                     binding.swVoiceBoost.isChecked = enabled
                 }
@@ -120,7 +118,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // 極低輝度ナイトモードの監視 / Monitor night mode
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isNightModeEnabled.collect { enabled ->
                     binding.swNightMode.isChecked = enabled
                 }
@@ -133,7 +131,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // バックグラウンド再生設定の監視 / Monitor background play setting
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isBackgroundPlayEnabled.collect { enabled ->
                     binding.swBackgroundPlay.isChecked = enabled
                 }
@@ -146,7 +144,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // ホームでPiP表示の監視 / Monitor auto Picture-in-Picture setting
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.isAutoPipEnabled.collect { enabled ->
                     binding.swAutoPip.isChecked = enabled
                 }
@@ -159,12 +157,12 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // リピートモードの監視 / Monitor repeat mode
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.repeatMode.collect { mode ->
                     when (mode) {
-                        androidx.media3.common.Player.REPEAT_MODE_OFF -> binding.rgRepeatMode.check(binding.rgRepeatMode.getChildAt(0).id)
-                        androidx.media3.common.Player.REPEAT_MODE_ONE -> binding.rgRepeatMode.check(binding.rgRepeatMode.getChildAt(1).id)
-                        androidx.media3.common.Player.REPEAT_MODE_ALL -> binding.rgRepeatMode.check(binding.rgRepeatMode.getChildAt(2).id)
+                        androidx.media3.common.Player.REPEAT_MODE_OFF -> binding.rgRepeatMode.check(R.id.rb_repeat_off)
+                        androidx.media3.common.Player.REPEAT_MODE_ONE -> binding.rgRepeatMode.check(R.id.rb_repeat_one)
+                        androidx.media3.common.Player.REPEAT_MODE_ALL -> binding.rgRepeatMode.check(R.id.rb_repeat_all)
                     }
                 }
             }
@@ -172,9 +170,9 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         binding.rgRepeatMode.setOnCheckedChangeListener { _, checkedId ->
             val mode = when (checkedId) {
-                binding.rgRepeatMode.getChildAt(0).id -> androidx.media3.common.Player.REPEAT_MODE_OFF
-                binding.rgRepeatMode.getChildAt(1).id -> androidx.media3.common.Player.REPEAT_MODE_ONE
-                binding.rgRepeatMode.getChildAt(2).id -> androidx.media3.common.Player.REPEAT_MODE_ALL
+                R.id.rb_repeat_off -> androidx.media3.common.Player.REPEAT_MODE_OFF
+                R.id.rb_repeat_one -> androidx.media3.common.Player.REPEAT_MODE_ONE
+                R.id.rb_repeat_all -> androidx.media3.common.Player.REPEAT_MODE_ALL
                 else -> androidx.media3.common.Player.REPEAT_MODE_OFF
             }
             viewModel.setRepeatMode(mode)
@@ -182,7 +180,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // シャッフル設定の監視 / Monitor shuffle setting
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.shuffleModeEnabled.collect { enabled ->
                     binding.swShuffle.isChecked = enabled
                 }
@@ -202,7 +200,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // フォルダ一覧の監視 / Monitor folder list
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.folders.collect { folders ->
                     adapter.submitList(folders)
                 }
@@ -220,7 +218,7 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
 
         // おやすみタイマーの監視 / Monitor sleep timer
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.sleepTimerMinutes.collect { minutes ->
                     val text = if (minutes > 0) "${minutes}分後に停止 / Stop in ${minutes}m" else "OFF"
                     binding.tvSleepTimerValue.text = text
@@ -229,14 +227,25 @@ class SettingsBottomSheet : BottomSheetDialogFragment() {
         }
 
         binding.btnSleepTimer.setOnClickListener {
-            val options = arrayOf("OFF", "15分 / 15 min", "30分 / 30 min", "60分 / 60 min")
+            val options = arrayOf(
+                "OFF",
+                "15分 / 15 min",
+                "30分 / 30 min",
+                "45分 / 45 min",
+                "60分 / 60 min",
+                "90分 / 90 min",
+                "120分 / 120 min"
+            )
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle("おやすみタイマー / Sleep Timer")
                 .setItems(options) { _, which ->
                     val minutes = when (which) {
                         1 -> 15
                         2 -> 30
-                        3 -> 60
+                        3 -> 45
+                        4 -> 60
+                        5 -> 90
+                        6 -> 120
                         else -> 0
                     }
                     viewModel.setSleepTimer(minutes)

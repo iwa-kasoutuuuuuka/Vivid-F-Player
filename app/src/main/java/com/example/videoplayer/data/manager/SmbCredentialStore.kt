@@ -121,9 +121,13 @@ class SmbCredentialStore private constructor(context: Context) {
 
     // ---- 暗号化 / Encryption ----
 
-    private fun secretKey(): SecretKey {
+    private fun secretKey(recreate: Boolean = false): SecretKey {
         val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        if (recreate) {
+            runCatching { keyStore.deleteEntry(KEY_ALIAS) }
+        } else {
+            (runCatching { keyStore.getKey(KEY_ALIAS, null) as? SecretKey }.getOrNull())?.let { return it }
+        }
         return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE).apply {
             init(
                 KeyGenParameterSpec.Builder(KEY_ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
@@ -136,17 +140,24 @@ class SmbCredentialStore private constructor(context: Context) {
     }
 
     private fun encrypt(plain: String): String {
-        val cipher = Cipher.getInstance(TRANSFORMATION).apply { init(Cipher.ENCRYPT_MODE, secretKey()) }
+        val cipher = try {
+            Cipher.getInstance(TRANSFORMATION).apply { init(Cipher.ENCRYPT_MODE, secretKey()) }
+        } catch (_: Exception) {
+            Cipher.getInstance(TRANSFORMATION).apply { init(Cipher.ENCRYPT_MODE, secretKey(recreate = true)) }
+        }
         val body = cipher.doFinal(plain.toByteArray(Charsets.UTF_8))
         return Base64.encodeToString(cipher.iv + body, Base64.NO_WRAP)
     }
 
     private fun decrypt(stored: String): String? = try {
         val bytes = Base64.decode(stored, Base64.NO_WRAP)
-        val cipher = Cipher.getInstance(TRANSFORMATION).apply {
-            init(Cipher.DECRYPT_MODE, secretKey(), GCMParameterSpec(128, bytes, 0, IV_LENGTH))
+        if (bytes.size < IV_LENGTH + 16) null
+        else {
+            val cipher = Cipher.getInstance(TRANSFORMATION).apply {
+                init(Cipher.DECRYPT_MODE, secretKey(), GCMParameterSpec(128, bytes, 0, IV_LENGTH))
+            }
+            String(cipher.doFinal(bytes, IV_LENGTH, bytes.size - IV_LENGTH), Charsets.UTF_8)
         }
-        String(cipher.doFinal(bytes, IV_LENGTH, bytes.size - IV_LENGTH), Charsets.UTF_8)
     } catch (e: Exception) {
         null
     }

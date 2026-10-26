@@ -24,6 +24,10 @@ class SmbVideoRepository(private val credentialStore: SmbCredentialStore) : Vide
                    subBase.startsWith("${videoBaseName}.", ignoreCase = true) ||
                    subBase.startsWith("${videoBaseName}_", ignoreCase = true)
         }
+
+        fun clearCache(folderUri: Uri) {
+            subtitleCache.remove(folderUri.toString())
+        }
     }
 
     private fun open(uri: Uri): SmbFile {
@@ -63,8 +67,8 @@ class SmbVideoRepository(private val credentialStore: SmbCredentialStore) : Vide
 
             subtitleCache[folderKey] = subtitleList
             videoList.sortedWith { a, b -> NaturalOrderComparator.compare(a.name, b.name) }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
+            // 接続エラー時に内部IPや共有パスをシステムログへ出力しない / Avoid leaking SMB internal paths to logcat
             emptyList()
         }
     }

@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.23
+# 技術仕様書 (Technical Specifications) - v1.2.24
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -12,7 +12,20 @@ Vivid F Player is an Android video player specialized for watching videos in off
 
 ## バージョン履歴 / Version History
 
-### v1.2.23 (Current)
+### v1.2.24 (Current)
+- **Security & Vulnerability Hardening**:
+  - **Audio Capture Protection**: Restricted `AudioAttributes` capture policy from `ALLOW_CAPTURE_BY_ALL` to `ALLOW_CAPTURE_BY_SYSTEM`, preventing untrusted third-party apps from recording private video audio streams.
+  - **Least-Privilege SAF Permissions**: `MainActivity` now requests only `FLAG_GRANT_READ_URI_PERMISSION` (dropping unnecessary `WRITE` permission and preventing `SecurityException` on read-only SD cards/OTG drives), releases persistable URI permissions upon folder removal, and scopes `READ_EXTERNAL_STORAGE` to `maxSdkVersion="32"`.
+  - **SMB Input Sanitization & Keystore Recovery**: Validated SMB server/share inputs against URL-breaking characters (`@`, `?`, `#`, whitespace) and path traversal (`..`), preserved leading/trailing spaces in passwords, removed raw stack trace logging (`printStackTrace`) on SMB errors, and added automatic Keystore key regeneration if a key becomes permanently invalidated.
+- **Debugging & Stability Fixes**:
+  - **Single-Instance Player (`singleTask` + `onNewIntent`)**: Prevented duplicate `PlayerActivity` instances from attaching to the singleton `ExoPlayer` when selecting a new video while PiP or background playback is active.
+  - **Pocket Mode Brightness Restoration & Z-Order**: Fixed `exitPocketMode()` failing to restore default system brightness (`BRIGHTNESS_OVERRIDE_NONE = -1.0f`), elevated `indicator_layout` above `layout_pocket_mode`, and auto-exited Pocket Mode on PiP transition.
+  - **System Back Gesture Protection**: Added `OnBackPressedCallback` so edge-swipe Back gestures in Pocket Mode or Screen Lock do not accidentally close the player.
+  - **Resume Position Integrity**: Guarded `saveCurrentPosition()` against `STATE_IDLE` and in-flight track transitions so network errors or rapid track skipping never overwrite valid resume progress with `0ms`.
+  - **Triple-Tap & Fast-Forward Edge Cases**: Suppressed spurious `onSingleTapConfirmed` after left-side triple-tap rewind, and ensured `stopFastForward()` resets playback speed on `onStop()`, PiP entry, and track change.
+  - **Zero Lint Errors**: Resolved all 53 Android Lint errors (`UnsafeOptInUsageError`, `UseAppTint`, `WakelockTimeout`, `RepeatMode` RadioButton IDs).
+
+### v1.2.23
 - **Fast Batch Query Null-Safety & Fallback**:
   - Hardened `tryFastQuery` null checks on `cursor.getString()` preventing any potential `NullPointerException` during fast document scanning.
 - **Process-Wide Shared Subtitle Cache**:

@@ -25,7 +25,7 @@ class PlaybackService : MediaSessionService() {
         super.onStartCommand(intent, flags, startId)
         wakeLock?.let {
             if (!it.isHeld) {
-                it.acquire()
+                it.acquire(10 * 60 * 60 * 1000L) // 10h safety timeout to prevent orphaned wakelocks
             }
         }
         return START_STICKY

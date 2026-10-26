@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.23
+- **Current Version**: v1.2.24
 - **Latest Build**: [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) ([直接ダウンロード / Direct Download](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk))
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -191,6 +191,18 @@ Depending on the Android version or device (Xperia, Samsung, AQUOS, etc.), softw
    バックグラウンド再生の制御には通知権限が必要です。 / Notification permission is required for background playback control.
 
 ## 🔄 更新履歴 / Update History
+
+### v1.2.24 (2026-10-26)
+- **セキュリティ・脆弱性対策の強化 / Security & Vulnerability Hardening**:
+  * **音声キャプチャ保護**: `AudioAttributes` のキャプチャポリシーを `ALLOW_CAPTURE_BY_SYSTEM` に制限し、サードパーティ製アプリによるプライベート動画音声の録音を防止。 / Restricted audio capture policy to system components only.
+  * **最小権限の原則と読み取り専用メディア対応**: フォルダ選択時の永続化権限を `FLAG_GRANT_READ_URI_PERMISSION` のみに限定（読み取り専用SDカード/OTGドライブでのクラッシュも解消）し、フォルダ解除時の権限解放と `READ_EXTERNAL_STORAGE` の `maxSdkVersion="32"` 制限を適用。 / Enforced least-privilege read-only SAF permissions and proper permission release on folder removal.
+  * **SMB入力検証とKeystore自己修復**: サーバー/共有名の不正文字（`@`, `?`, `#`）やパストラバーサル（`..`）を検証、パスワード前後の意図的な空白を保持、接続エラー時の内部パスログ露出を抑止、Keystore鍵無効化時の自動再生成に対応。 / Hardened SMB input validation, password preservation, log sanitization, and Keystore recovery.
+- **デバッグ・不具合修正 / Bug Fixes & Stability**:
+  * **PiP・バックグラウンド再生中の重複起動防止 (`singleTask` + `onNewIntent`)**: PiP小窓やバックグラウンド再生中に一覧から別の動画を選択した際、プレイヤー画面が多重起動して2曲飛ばしや再生停止が起きる不具合を修正。 / Prevented duplicate `PlayerActivity` instances when switching videos during PiP or background play.
+  * **ポケットモードの輝度復帰バグ修正**: 手動で輝度変更せずにポケットモードへ入った際、解除後にシステム標準輝度（`-1.0f`）へ戻らず画面が暗いままになる不具合を修正。 / Fixed system default brightness restoration when exiting Pocket Mode.
+  * **ポケットモード・画面ロック中のシステム「戻る」ジェスチャー保護**: 画面端スワイプによる誤終了を防止（ポケットモード中は画面復帰、ロック中はロック通知を表示）。 / Blocked accidental system Back gestures while in Pocket Mode or Screen Lock.
+  * **レジューム位置の上書き保護**: ネットワーク切断エラー時（`STATE_IDLE`）や連続スキップ遷移中に、保存済みの再生位置が `0:00` で上書きされる不具合を修正。 / Protected saved resume positions from being overwritten during `STATE_IDLE` or async track transitions.
+  * **トリプルタップ・長押し倍速・おやすみタイマー等の改善**: 左トリプルタップ直後にコントロールが誤表示される現象の抑止、PiP移行時や画面停止時の倍速解除保証、おやすみタイマーの選択肢拡充（45分/90分/120分）、Android Lint エラー（全53件）の完全解消。 / Fixed triple-tap control toggle, fast-forward reset on PiP/stop, sleep timer options, and all 53 Android Lint errors.
 
 ### v1.2.23 (2026-10-07)
 - **高速ファイル走査のNull安全性向上 / Fast Batch Query Null-Safety & Fallback**:

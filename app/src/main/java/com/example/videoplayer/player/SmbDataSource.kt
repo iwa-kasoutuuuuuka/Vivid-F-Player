@@ -5,11 +5,11 @@ import androidx.media3.common.C
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
-import androidx.media3.datasource.TransferListener
 import com.example.videoplayer.data.manager.SmbCredentialStore
 import jcifs.smb.SmbRandomAccessFile
 import java.io.IOException
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class SmbDataSource(
     private val credentialStore: SmbCredentialStore
 ) : BaseDataSource(true) {
@@ -26,22 +26,31 @@ class SmbDataSource(
         try {
             val url = dataSpec.uri.toString()
             val smbFile = jcifs.smb.SmbFile(url, credentialStore.contextFor(url))
-            file = SmbRandomAccessFile(smbFile, "r")
+            val raf = SmbRandomAccessFile(smbFile, "r")
+            file = raf
             
-            file?.seek(dataSpec.position)
+            raf.seek(dataSpec.position)
             
             val length = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
                 dataSpec.length
             } else {
                 smbFile.length() - dataSpec.position
             }
+            if (length < 0) {
+                throw androidx.media3.datasource.DataSourceException(
+                    androidx.media3.common.PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE
+                )
+            }
             
             bytesRemaining = length
             opened = true
             transferStarted(dataSpec)
             return length
-        } catch (e: IOException) {
-            throw SmbDataSourceException(e)
+        } catch (e: Exception) {
+            runCatching { file?.close() }
+            file = null
+            val ioEx = e as? IOException ?: IOException(e)
+            throw SmbDataSourceException(ioEx)
         }
     }
 

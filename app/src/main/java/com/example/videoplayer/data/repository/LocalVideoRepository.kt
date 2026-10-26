@@ -25,6 +25,10 @@ class LocalVideoRepository(private val context: Context) : VideoRepository {
                    subBase.startsWith("${videoBaseName}.", ignoreCase = true) ||
                    subBase.startsWith("${videoBaseName}_", ignoreCase = true)
         }
+
+        fun clearCache(folderUri: Uri) {
+            subtitleCache.remove(folderUri.toString())
+        }
     }
 
     override suspend fun getVideoFiles(folderUri: Uri): List<VideoFile> = withContext(Dispatchers.IO) {
@@ -119,7 +123,9 @@ class LocalVideoRepository(private val context: Context) : VideoRepository {
                 return true
             }
         } catch (_: Exception) {
-            // 例外時はフォールバック
+            // 例外時は途中までの要素をクリアしてフォールバック
+            outVideos.clear()
+            outSubtitles.clear()
         }
         return false
     }

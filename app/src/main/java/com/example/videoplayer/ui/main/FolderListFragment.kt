@@ -1,5 +1,6 @@
 package com.example.videoplayer.ui.main
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,12 +13,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.videoplayer.data.manager.ResumeManager
-import android.content.Intent
 import com.example.videoplayer.R
-import com.example.videoplayer.ui.MainActivity
+import com.example.videoplayer.data.manager.ResumeManager
 import com.example.videoplayer.databinding.FragmentFolderListBinding
-import kotlinx.coroutines.flow.collect
+import com.example.videoplayer.ui.MainActivity
 import kotlinx.coroutines.launch
 
 class FolderListFragment : Fragment() {
@@ -52,7 +51,7 @@ class FolderListFragment : Fragment() {
 
         // フォルダ一覧の監視 / Monitor folder list
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.folders.collect { folders ->
                     adapter.submitList(folders)
                 }
@@ -77,15 +76,27 @@ class FolderListFragment : Fragment() {
         dialogBinding.btnConnect.setOnClickListener {
             // 全角英数字（日本語IME入力）を半角に正規化 / Normalize full-width characters typed via Japanese IMEs
             val normalize = { s: String -> java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFKC).trim() }
-            val server = normalize(dialogBinding.etServer.text.toString())
-            val share = normalize(dialogBinding.etShare.text.toString()).replace('\\', '/')
+            val rawServer = normalize(dialogBinding.etServer.text.toString())
+                .removePrefix("smb://")
+                .removePrefix("SMB://")
+                .trim('/')
+            val rawShare = normalize(dialogBinding.etShare.text.toString())
+                .replace('\\', '/')
+                .trim('/')
             val user = dialogBinding.etUsername.text.toString().trim()
-            val pass = dialogBinding.etPassword.text.toString().trim()
+            // パスワードは意図的な前後空白を壊さないようtrimしない / Do not trim password
+            val pass = dialogBinding.etPassword.text.toString()
 
-            if (server.isNotEmpty() && share.isNotEmpty()) {
+            val isValidServer = rawServer.isNotEmpty() &&
+                !rawServer.any { it.isWhitespace() || it in "@/?#" }
+            val isValidShare = rawShare.isNotEmpty() &&
+                !rawShare.any { it in "@?#" } &&
+                !rawShare.split('/').any { it == ".." }
+
+            if (isValidServer && isValidShare) {
                 // smb://host[:port]/share/ — 認証情報はURLに含めず暗号化して別保存
                 // Credentials stay out of the URL and are stored encrypted separately
-                val smbUrl = "smb://$server/${share.trim('/')}/"
+                val smbUrl = "smb://$rawServer/$rawShare/"
                 viewModel.addSmbFolder(smbUrl, user, pass)
                 dialog.dismiss()
             } else {

@@ -12,6 +12,7 @@ import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.LoadControl
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 object PlayerHolder {
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
@@ -23,7 +24,7 @@ object PlayerHolder {
             val audioAttributes = AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
-                .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL)
+                .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_SYSTEM)
                 .build()
 
             // B: Hardware Decoding Optimization

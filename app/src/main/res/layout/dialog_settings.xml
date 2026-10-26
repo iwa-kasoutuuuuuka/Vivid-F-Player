@@ -172,9 +172,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OFF" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ONE" android:textColor="#FFFFFF" />
-            <RadioButton android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ALL" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_repeat_off" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="OFF" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_repeat_one" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ONE" android:textColor="#FFFFFF" />
+            <RadioButton android:id="@+id/rb_repeat_all" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ALL" android:textColor="#FFFFFF" />
         </RadioGroup>
 
         <!-- シャッフル -->
@@ -226,7 +226,7 @@
             android:gravity="center"
             android:padding="12dp"
             android:background="?attr/selectableItemBackground"
-            android:drawableStart="@android:drawable/ic_menu_help"
+            app:drawableStartCompat="@android:drawable/ic_menu_help"
             android:drawablePadding="8dp" />
 
         <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#33FFFFFF" android:layout_marginVertical="16dp" />
@@ -267,7 +267,7 @@
             android:gravity="center"
             android:padding="12dp"
             android:background="?attr/selectableItemBackground"
-            android:drawableStart="@android:drawable/ic_lock_idle_low_battery"
+            app:drawableStartCompat="@android:drawable/ic_lock_idle_low_battery"
             android:drawablePadding="8dp" />
 
     </LinearLayout>

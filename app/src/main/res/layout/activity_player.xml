@@ -119,46 +119,6 @@
             android:background="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 
-    <!-- Indicators for Volume/Brightness -->
-    <LinearLayout
-        android:id="@+id/indicator_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:background="@drawable/bg_indicator"
-        android:padding="24dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/iv_indicator_icon"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/ic_volume"
-            app:tint="#FFFFFF" />
-
-        <TextView
-            android:id="@+id/tv_indicator_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:layout_marginTop="4dp"
-            android:visibility="gone" />
-
-        <ProgressBar
-            android:id="@+id/pb_indicator"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="120dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:max="100" />
-    </LinearLayout>
-
     <!-- Bottom Controls -->
     <LinearLayout
         android:id="@+id/bottom_controls"
@@ -240,7 +200,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-
     <!-- Pocket Mode Fullscreen Overlay -->
     <FrameLayout
         android:id="@+id/layout_pocket_mode"
@@ -259,5 +218,47 @@
             android:textColor="#33FFFFFF"
             android:textSize="14sp" />
     </FrameLayout>
+
+    <!-- Indicators for Volume/Brightness/Pocket Mode (drawn above overlays) -->
+    <LinearLayout
+        android:id="@+id/indicator_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/bg_indicator"
+        android:padding="24dp"
+        android:visibility="gone"
+        android:clickable="false"
+        android:focusable="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_indicator_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_volume"
+            app:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tv_indicator_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/pb_indicator"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:max="100" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

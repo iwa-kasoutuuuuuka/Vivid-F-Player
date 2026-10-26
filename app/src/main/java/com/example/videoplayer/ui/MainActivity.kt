@@ -1,18 +1,19 @@
 package com.example.videoplayer.ui
 
-import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.videoplayer.R
 import com.example.videoplayer.databinding.ActivityMainBinding
-import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.example.videoplayer.ui.main.FileListFragment
 import com.example.videoplayer.ui.main.FolderListFragment
 import com.example.videoplayer.ui.main.FolderSelectionFragment
-import androidx.activity.result.contract.ActivityResultContracts
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
@@ -43,11 +44,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            viewModel.folders.collect { folders ->
-                if (folders.isEmpty()) {
-                    showFolderSelection()
-                } else if (supportFragmentManager.findFragmentById(R.id.fragment_container) !is FileListFragment) {
-                    showFolderList()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.folders.collect { folders ->
+                    if (folders.isEmpty()) {
+                        showFolderSelection()
+                    } else if (supportFragmentManager.findFragmentById(R.id.fragment_container) !is FileListFragment) {
+                        showFolderList()
+                    }
                 }
             }
         }
@@ -56,13 +59,13 @@ class MainActivity : AppCompatActivity() {
     fun showFolderSelection() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, FolderSelectionFragment())
-            .commit()
+            .commitAllowingStateLoss()
     }
 
     fun showFolderList() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, FolderListFragment())
-            .commit()
+            .commitAllowingStateLoss()
     }
 
     fun navigateToFileList(uri: Uri) {
@@ -76,9 +79,14 @@ class MainActivity : AppCompatActivity() {
 
     fun onFolderSelected(uri: Uri) {
         if (uri.scheme == "content") {
-            contentResolver.takePersistableUriPermission(uri, 
-                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or 
-                android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            // 最小権限の原則: 読み取り権限のみ永続化（読み取り専用SDカード/OTGでのSecurityExceptionも防止）
+            // Principle of least privilege: only persist READ permission (also prevents SecurityException on read-only media)
+            runCatching {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
         }
         viewModel.addFolder(uri)
     }

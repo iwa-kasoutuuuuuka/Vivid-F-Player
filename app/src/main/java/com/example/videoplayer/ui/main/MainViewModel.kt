@@ -1,6 +1,7 @@
 package com.example.videoplayer.ui.main
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,9 @@ import com.example.videoplayer.data.manager.AppSettings
 import com.example.videoplayer.data.manager.SmbCredentialStore
 import com.example.videoplayer.data.model.VideoFile
 import com.example.videoplayer.data.repository.CompositeVideoRepository
+import com.example.videoplayer.data.repository.LocalVideoRepository
+import com.example.videoplayer.data.repository.SmbVideoRepository
+import com.example.videoplayer.util.NaturalOrderComparator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -46,7 +50,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadFolders() {
         val uris = prefs.getStringSet("folder_uris", emptySet()) ?: emptySet()
-        _folders.value = uris.map { Uri.parse(it) }
+        _folders.value = uris
+            .sortedWith(NaturalOrderComparator)
+            .map { Uri.parse(it) }
     }
 
     fun addFolder(uri: Uri) {
@@ -72,7 +78,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val currentSet = prefs.getStringSet("folder_uris", emptySet())?.toMutableSet() ?: mutableSetOf()
         currentSet.remove(uri.toString())
         prefs.edit().putStringSet("folder_uris", currentSet).apply()
-        if (uri.scheme == "smb") credentialStore.remove(uri.toString(), currentSet)
+        if (uri.scheme == "smb") {
+            credentialStore.remove(uri.toString(), currentSet)
+            SmbVideoRepository.clearCache(uri)
+        } else {
+            LocalVideoRepository.clearCache(uri)
+            if (uri.scheme == "content") {
+                runCatching {
+                    getApplication<Application>().contentResolver.releasePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+            }
+        }
         loadFolders()
     }
 
