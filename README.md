@@ -21,6 +21,10 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 
 ## 🚀 主な機能 / Key Features
 
+- **🛡️ 堅牢なセキュリティとプライバシー保護 (Security & Privacy)**:
+  - **音声キャプチャ遮断**: `AudioAttributes` をシステムコンポーネントのみに限定（`ALLOW_CAPTURE_BY_SYSTEM`）。不正な外部録音アプリから再生音声を保護。 / Audio playback capture restricted to system components only.
+  - **最小権限のストレージアクセス**: 読み取り専用権限（`READ`）のみを永続化し、読み取り専用SDカードやUSB OTGドライブでも安全に動作。登録解除時にはURI権限を即時解放。 / Read-only SAF permission persistence preventing crash on read-only external storage.
+  - **セキュアなSMB接続**: Android Keystore (AES-256-GCM) 暗号化保存に加え、入力サニタイズ（パストラバーサルや不正記号の除去）と接続エラー時のログ漏洩防止。 / Encrypted SMB credentials with strict input validation and zero-leak error handling.
 - **⚡ 爆速再生エンジン＆超高速ファイル走査 (High Performance)**:
   - **瞬時再生開始 (Instant Start)**: 再生開始バッファを 600ms（従来の1/4）に最適化し、タップした瞬間に動画が再生開始。 / Optimized playback buffer to 600ms for instant start.
   - **15秒バックバッファ保持 (Instant Rewind)**: ダブルタップ巻き戻し（10秒戻し）時に再ダウンロードが不要、メモリから遅延ゼロで瞬時復帰。 / 15s back-buffer enables 0ms instant rewinds.
@@ -65,6 +69,7 @@ The video player screen supports intuitive touch operations and gestures.
 | **右側ダブルタップ / Right Double-Tap** | 早送り / Forward | 動画を指定秒数（5s/10s/30s/60s 設定可）先へシーク / Seek forward by configured seconds |
 | **「前へ」ボタン / Previous Button** | 先頭復帰 / 前の動画 / Rewind / Previous | 3秒以上再生中は「動画の先頭」へ戻る。3秒以内または長押しで「前の動画」へ移動 / Seeks to start if playing > 3s; goes to previous video if <= 3s or on long-press |
 | **画面長押し / Long Press** | 高速倍速再生 / Fast Forward | 押している間だけ設定倍速（1.5x〜3.0x）で再生、離すと元の速度に復帰 / Plays at configured speed while holding, restores original speed on release |
+| **画面端スワイプ（戻るジェスチャー） / Back Gesture** | 誤操作防止保護 / Back Guard | ポケットモード中は画面復帰、ロック中はロック通知を表示し誤終了をブロック / Prevents accidental player exit while locked or in Pocket Mode |
 | **ポケットモード / Pocket Mode** | 画面消灯 / Blackout | 上部バーの画面消灯アイコンで完全ブラックアウト。画面タップで復帰 / Black out screen to save battery and lock touches; tap to wake |
 | **音声トラック / Audio Track** | 音声切り替え / Switch Audio | 上部バーの音声アイコンから主音声・副音声・多言語音声を切り替え / Switch between multi-language or alternate audio tracks |
 | **画面ロック / Screen Lock** | 誤操作防止 / Lock Touch | コントロールバーの鍵アイコンでジェスチャーとタップ操作をロック / Lock gestures and controls via the lock icon on the top bar |
@@ -116,8 +121,9 @@ You can add shared folders from your home NAS or PC and stream videos directly o
   - パスワードはURLなどの平文文字列には一切保存されません。
   - **Android Keystore (AES-256-GCM)** を用いて端末内のセキュアストレージに暗号化保存されます。
   - クラウドバックアップや機種変更時のデータ移行からも自動除外され、認証情報の外部流出を防止します。
-- **入力アシスト / Input Sanitization**:
+- **入力アシスト＆サニタイズ / Input Sanitization**:
   - 日本語IME（全角・かな入力）によるアドレスの誤入力を自動でNFKC正規化・フィルタリングします。
+  - パストラバーサル（`..`）や不正記号（`@`, `?`, `#`）の検証により、安全なURIを生成します。パスワード前後の意図的な空白も保護されます。
 
 ---
 
