@@ -7,6 +7,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
@@ -25,6 +26,7 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
+import android.widget.SeekBar
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -106,6 +108,22 @@ class PlayerActivity : AppCompatActivity() {
     private var scaleFactor = 1.0f
     private lateinit var scaleGestureDetector: ScaleGestureDetector
     private var prePocketBrightness: Float = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+
+    private enum class ScreenOrientationMode { LANDSCAPE, PORTRAIT, SENSOR }
+    private var orientationMode = ScreenOrientationMode.LANDSCAPE
+    private var isTrackingSeekBar = false
+    private var lastSeekTime = 0L
+    private var lastSeekTargetPos = -1L
+
+    private val progressUpdateHandler = Handler(Looper.getMainLooper())
+    private val progressUpdateRunnable = object : Runnable {
+        override fun run() {
+            updateProgress()
+            if (binding.bottomControls.visibility == View.VISIBLE) {
+                progressUpdateHandler.postDelayed(this, 500L)
+            }
+        }
+    }
 
     private val statusUpdateHandler = Handler(Looper.getMainLooper())
     private val statusUpdateRunnable = object : Runnable {
@@ -305,6 +323,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
+            updateProgress()
             if (playbackState == Player.STATE_READY) {
                 applyVoiceBoost()
             }
@@ -321,6 +340,7 @@ class PlayerActivity : AppCompatActivity() {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             updatePlayPauseIcon(isPlaying)
             updatePipParams()
+            updateProgress()
             if (isPlaying) {
                 applyVoiceBoost()
                 sleepTimeoutHandler.removeCallbacks(sleepTimeoutRunnable)
@@ -338,6 +358,9 @@ class PlayerActivity : AppCompatActivity() {
 
         override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
             checkABLoop()
+            lastSeekTargetPos = -1L
+            lastSeekTime = 0L
+            updateProgress()
         }
 
         override fun onEvents(player: Player, events: Player.Events) {
@@ -493,6 +516,42 @@ class PlayerActivity : AppCompatActivity() {
             if (isLocked) return@setOnClickListener
             cycleABLoop()
         }
+
+        binding.btnOrientation.setOnClickListener {
+            if (isLocked) return@setOnClickListener
+            cycleOrientation()
+        }
+
+        binding.playerSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    val duration = playerManager.player.duration.coerceAtLeast(0L)
+                    if (duration > 0) {
+                        val targetPos = (duration * progress) / 1000L
+                        binding.tvCurrentTime.text = formatTime(targetPos)
+                    }
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                isTrackingSeekBar = true
+                hideHandler.removeCallbacks(hideRunnable)
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                val duration = playerManager.player.duration.coerceAtLeast(0L)
+                if (duration > 0 && seekBar != null) {
+                    val targetPos = (duration * seekBar.progress) / 1000L
+                    lastSeekTime = SystemClock.uptimeMillis()
+                    lastSeekTargetPos = targetPos
+                    playerManager.player.seekTo(targetPos)
+                    binding.tvCurrentTime.text = formatTime(targetPos)
+                }
+                isTrackingSeekBar = false
+                hideHandler.removeCallbacks(hideRunnable)
+                hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
+            }
+        })
     }
 
     private fun toggleLock() {
@@ -619,11 +678,69 @@ class PlayerActivity : AppCompatActivity() {
         updateStatusInfo()
         statusUpdateHandler.removeCallbacks(statusUpdateRunnable)
         statusUpdateHandler.postDelayed(statusUpdateRunnable, 10000L)
+        updateProgress()
+        progressUpdateHandler.removeCallbacks(progressUpdateRunnable)
+        progressUpdateHandler.postDelayed(progressUpdateRunnable, 500L)
         binding.controlsLayout.visibility = View.VISIBLE
         binding.bottomControls.visibility = View.VISIBLE
         showSystemBars()
         hideHandler.removeCallbacks(hideRunnable)
         hideHandler.postDelayed(hideRunnable, HIDE_DELAY)
+    }
+
+    private fun cycleOrientation() {
+        orientationMode = when (orientationMode) {
+            ScreenOrientationMode.LANDSCAPE -> ScreenOrientationMode.PORTRAIT
+            ScreenOrientationMode.PORTRAIT -> ScreenOrientationMode.SENSOR
+            ScreenOrientationMode.SENSOR -> ScreenOrientationMode.LANDSCAPE
+        }
+        applyOrientationMode()
+    }
+
+    private fun applyOrientationMode() {
+        when (orientationMode) {
+            ScreenOrientationMode.LANDSCAPE -> {
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+                binding.btnOrientation.setImageResource(R.drawable.ic_screen_landscape)
+                showIndicator(R.drawable.ic_screen_landscape, -1, getString(R.string.orientation_landscape))
+            }
+            ScreenOrientationMode.PORTRAIT -> {
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                binding.btnOrientation.setImageResource(R.drawable.ic_screen_portrait)
+                showIndicator(R.drawable.ic_screen_portrait, -1, getString(R.string.orientation_portrait))
+            }
+            ScreenOrientationMode.SENSOR -> {
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+                binding.btnOrientation.setImageResource(R.drawable.ic_screen_rotation)
+                showIndicator(R.drawable.ic_screen_rotation, -1, getString(R.string.orientation_auto))
+            }
+        }
+    }
+
+    private fun updateProgress() {
+        if (!::playerManager.isInitialized) return
+        val player = playerManager.player
+        val duration = player.duration.coerceAtLeast(0L)
+        val position = player.currentPosition.coerceAtLeast(0L)
+        val buffered = player.bufferedPosition.coerceAtLeast(0L)
+
+        val now = SystemClock.uptimeMillis()
+        val isRecentlySeeked = (now - lastSeekTime < 500L) && lastSeekTargetPos >= 0
+        val effectivePosition = if (isRecentlySeeked) lastSeekTargetPos else position
+
+        if (!isTrackingSeekBar) {
+            if (duration > 0) {
+                val progress = ((effectivePosition * 1000) / duration).toInt().coerceIn(0, 1000)
+                val secondaryProgress = ((buffered * 1000) / duration).toInt().coerceIn(0, 1000)
+                binding.playerSeekBar.progress = progress
+                binding.playerSeekBar.secondaryProgress = secondaryProgress
+            } else {
+                binding.playerSeekBar.progress = 0
+                binding.playerSeekBar.secondaryProgress = 0
+            }
+            binding.tvCurrentTime.text = formatTime(effectivePosition)
+        }
+        binding.tvTotalDuration.text = formatTime(duration)
     }
 
     private fun enterPocketMode() {
@@ -680,6 +797,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun hideControls() {
         statusUpdateHandler.removeCallbacks(statusUpdateRunnable)
+        progressUpdateHandler.removeCallbacks(progressUpdateRunnable)
         binding.controlsLayout.visibility = View.GONE
         binding.bottomControls.visibility = View.GONE
         hideSystemBars()
@@ -724,6 +842,7 @@ class PlayerActivity : AppCompatActivity() {
                     lastLeftDoubleTapTime = 0L
                     lastTripleTapTime = now
                     playerManager.player.seekTo(0)
+                    updateProgress()
                     showIndicator(R.drawable.ic_previous, -1, "0:00")
                     return true
                 }
@@ -789,11 +908,13 @@ class PlayerActivity : AppCompatActivity() {
                 if (isLeft) {
                     val targetPos = (curPos - deltaMs).coerceAtLeast(0L)
                     playerManager.player.seekTo(targetPos)
+                    updateProgress()
                     lastLeftDoubleTapTime = SystemClock.uptimeMillis()
                     showIndicator(R.drawable.ic_previous, -1, "-${skipSeconds}s")
                 } else {
                     val targetPos = (curPos + deltaMs).coerceAtMost(duration)
                     playerManager.player.seekTo(targetPos)
+                    updateProgress()
                     showIndicator(R.drawable.ic_next, -1, "+${skipSeconds}s")
                 }
                 return true
@@ -959,6 +1080,11 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        binding.root.requestApplyInsets()
+    }
+
     override fun onStart() {
         super.onStart()
         binding.playerView.player = playerManager.player
@@ -966,6 +1092,8 @@ class PlayerActivity : AppCompatActivity() {
         if (binding.controlsLayout.visibility == View.VISIBLE) {
             updateStatusInfo()
             statusUpdateHandler.post(statusUpdateRunnable)
+            updateProgress()
+            progressUpdateHandler.post(progressUpdateRunnable)
         }
         applyVoiceBoost()
     }
@@ -975,6 +1103,7 @@ class PlayerActivity : AppCompatActivity() {
         if (isFastForwarding) stopFastForward()
         abLoopHandler.removeCallbacks(abLoopRunnable)
         statusUpdateHandler.removeCallbacks(statusUpdateRunnable)
+        progressUpdateHandler.removeCallbacks(progressUpdateRunnable)
         sleepTimeoutHandler.removeCallbacks(sleepTimeoutRunnable)
         // 戻るボタン/おやすみタイマーで終了する場合はバックグラウンド再生しない
         // Don't keep playing when the user (or the sleep timer) is closing the player
@@ -1020,6 +1149,7 @@ class PlayerActivity : AppCompatActivity() {
         super.onDestroy()
         hideHandler.removeCallbacksAndMessages(null)
         statusUpdateHandler.removeCallbacksAndMessages(null)
+        progressUpdateHandler.removeCallbacksAndMessages(null)
         sleepTimeoutHandler.removeCallbacksAndMessages(null)
         loudnessEnhancer?.release()
         loudnessEnhancer = null

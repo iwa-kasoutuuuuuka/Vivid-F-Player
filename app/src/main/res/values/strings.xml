@@ -48,4 +48,8 @@ Depending on the Android version or device, background playback may stop. Please
     <string name="audio_track">音声選択 / Audio Track</string>
     <string name="tap_to_wake">タップして画面を点灯 / Tap to wake</string>
     <string name="unwatched_badge">未視聴</string>
+    <string name="screen_orientation">画面の向き / Screen Orientation</string>
+    <string name="orientation_landscape">横画面固定 / Landscape</string>
+    <string name="orientation_portrait">縦画面固定 / Portrait</string>
+    <string name="orientation_auto">自動回転 / Auto Rotate</string>
 </resources>

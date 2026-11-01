@@ -48,7 +48,7 @@ class FileListFragment : Fragment() {
         } ?: return
         viewModel.setFolder(folderUri)
 
-        adapter = FileListAdapter { videoFile ->
+        adapter = FileListAdapter(viewLifecycleOwner.lifecycleScope) { videoFile ->
             val intent = Intent(requireContext(), PlayerActivity::class.java).apply {
                 putExtra("video_uri", videoFile.uri)
                 putExtra("folder_uri", folderUri.toString())

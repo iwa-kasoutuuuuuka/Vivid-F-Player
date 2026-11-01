@@ -4,7 +4,7 @@
 A video player app for Android, designed for modern aesthetics and ease of use.
 
 ## バージョン情報 (Version Info)
-- **Current Version**: v1.2.24
+- **Current Version**: v1.2.25
 - **Latest Build**: [`app-debug.apk`](app/build/outputs/apk/debug/app-debug.apk) ([直接ダウンロード / Direct Download](https://github.com/iwa-kasoutuuuuuka/Vivid-F-Player/raw/main/app/build/outputs/apk/debug/app-debug.apk))
 
 Androidの端末内(SDカード含む)のフォルダや、NAS等のSMB共有フォルダを設定して、ファイル名順に動画ファイルを連続再生するだけ。
@@ -32,7 +32,10 @@ It supports multi-folder management, continuous playback in alphabetical order, 
   - **連続再生のシームレス化 (Subtitle Cache)**: 字幕ファイル一覧のプロセス共有インメモリキャッシュにより、次の動画への切り替え待ち時間（1〜3秒）を完全解消。 / Process-wide in-memory subtitle cache makes playlist track switches instant.
   - **大文字小文字対応の自然順ソート (Case-Insensitive Sort)**: 大文字・小文字の混在（例: `EP01` と `ep02`）も自然順で完璧にソート、かつメモリ割り当てゼロで高速。 / Zero-allocation case-insensitive natural order sorting.
   - **幅広い動画フォーマット対応 (Format Support)**: mp4, mkv, avi に加え、mov, webm, ts, flv, m4v, 3gp に対応。 / Supports mp4, mkv, avi, mov, webm, ts, flv, m4v, 3gp.
-- **🎬 モダンな再生コントロール / Modern Playback**: YouTube風ジェスチャー（長押し倍速、ダブルタップスキップ）、ピンチズーム（1.0x〜3.0x）、画面ロック、ABループ機能。 / YouTube-style gestures, Pinch Zoom (1.0x–3.0x), Screen Lock, and AB Loop.
+- **🎬 モダンな再生コントロール / Modern Playback**:
+  - **タイムライン・シークバー＆時間表示 (Timeline SeekBar & Time Display)**: 直感的なシークバーと現在時間/総時間（例: `14:20 / 45:00`）表示。バッファ進捗（二重プログレス）表示やシーク後の跳ね戻り防止ガードを備え、長編動画のスキップも自由自在。 / Dual-progress timeline seek bar and timestamp labels with anti-jitter guard.
+  - **画面向き固定切替 (Screen Orientation Lock)**: 上部バーのアイコンをタップするだけで「横画面固定」「縦画面固定」「自動回転（センサー追従）」を瞬時に切り替え。寝転がり視聴時の誤反転防止や縦型動画の再生に最適。 / Toggle Landscape, Portrait, and Full Sensor Auto-Rotate modes from the top bar.
+  - **直感的操作＆ループ**: YouTube風ジェスチャー（長押し倍速、ダブルタップスキップ）、ピンチズーム（1.0x〜3.0x）、画面ロック、ABループ機能。 / YouTube-style gestures, Pinch Zoom (1.0x–3.0x), Screen Lock, and AB Loop.
 - **⛺ キャンプ・省電力特化機能 / Camping & Power Saving**:
   - **画面完全消灯ポケットモード (Pocket Mode)**: 画面ブラックアウトに加え、画面輝度を極小値（0.01f）へ強制減光。誤タッチ防止と超省電力を両立し、ワンタップで元の輝度・画面へ即復帰。 / Screen blackout with hardware backlight dimming (0.01f) and touch protection; one tap restores original brightness.
   - **極低輝度ナイトモード (Extra Dim / Night Mode)**: 真っ暗なテント内でも眩しくない半透明ブラックオーバーレイ。 / Soft dimming overlay for pitch-dark tents.
@@ -41,7 +44,8 @@ It supports multi-folder management, continuous playback in alphabetical order, 
 - **🔊 音響強化 / Enhanced Audio**:
   - **ボイスブースト (Voice Boost)**: `LoudnessEnhancer` により、焚き火や屋外の環境音の中でもセリフ・人の声をくっきり強調。 / Boost speech frequencies over ambient noise using hardware audiofx.
   - **音声トラック切り替え (Audio Track Selection)**: 主音声/副音声や多言語音声トラックをダイアログから手軽に選択可能。 / Easily switch audio streams and secondary audio.
-- **📂 マルチフォルダ管理＆未視聴バッジ / Folder & Video Management**:
+- **📂 マルチフォルダ管理＆動画サムネイル / Folder & Video Management**:
+  - **動画サムネイル表示 (Video Thumbnails & Memory Cache)**: 各ファイルのプレビュー画像を16:9角丸カードで美しく表示。LruCacheとOS最適化API（`ContentResolver.loadThumbnail`）により、メモリ消費を最小化しながら高速表示（SMB動画は爆速走査を最優先するためスキップ）。 / Fast in-memory cached 16:9 video thumbnails for local storage.
   - ローカルおよびSMBフォルダを複数登録・管理可能。 / Register multiple local or SMB folders.
   - 未再生の動画に鮮やかな「未視聴 (NEW)」バッジを表示。進捗バーと合わせて視聴状況が一目で把握可能。 / Unwatched video badge and resume progress bars.
 - **🌐 SMBストリーミング / SMB Streaming**: NAS等のSMB共有から直接再生。認証情報は Android Keystore で暗号化して保存。 / Play directly from SMB shares; credentials are encrypted with the Android Keystore.
@@ -73,6 +77,8 @@ The video player screen supports intuitive touch operations and gestures.
 | **ポケットモード / Pocket Mode** | 画面消灯 / Blackout | 上部バーの画面消灯アイコンで完全ブラックアウト。画面タップで復帰 / Black out screen to save battery and lock touches; tap to wake |
 | **音声トラック / Audio Track** | 音声切り替え / Switch Audio | 上部バーの音声アイコンから主音声・副音声・多言語音声を切り替え / Switch between multi-language or alternate audio tracks |
 | **画面ロック / Screen Lock** | 誤操作防止 / Lock Touch | コントロールバーの鍵アイコンでジェスチャーとタップ操作をロック / Lock gestures and controls via the lock icon on the top bar |
+| **画面の向き切替 / Orientation Toggle** | 画面回転固定 / Screen Orientation | 横画面固定・縦画面固定・自動回転（センサー追従）をワンタップで切り替え / Cycle through Landscape, Portrait, and Full Sensor Auto-Rotate |
+| **シークバー操作 / Seek Bar Drag** | 任意位置へジャンプ / Seek Video | スライダーをドラッグして希望の再生位置へ即座に移動 / Drag the timeline slider to immediately seek to any position |
 | **ABループ / AB Loop** | 区間繰り返し / Segment Repeat | A点とB点を指定して特定シーンのみを繰り返しループ再生 / Loop a specific scene by setting A and B points |
 | **アスペクト比切替 / Aspect Ratio** | 画面サイズ変更 / Resize | フィット、全画面拡大、固定幅・高さなどの表示比率を順次切り替え / Cycle through Fit, Fill, Zoom, Fixed Width, and Fixed Height |
 

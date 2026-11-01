@@ -1,4 +1,4 @@
-# 技術仕様書 (Technical Specifications) - v1.2.24
+# 技術仕様書 (Technical Specifications) - v1.2.25
 
 ## 1. アプリ概要 / App Overview
 Vivid F Playerは、キャンプ場などのオフグリッド環境での動画視聴に特化したAndroid用ビデオプレイヤーです。
@@ -12,7 +12,18 @@ Vivid F Player is an Android video player specialized for watching videos in off
 
 ## バージョン履歴 / Version History
 
-### v1.2.24 (Current)
+### v1.2.25 (Current)
+- **Timeline Seek Bar & Time Display**:
+  - Added custom styled `SeekBar` with dual-layer progress / secondary buffer display and real-time timestamp labels (`tv_current_time` / `tv_total_duration`).
+  - Hardened against post-seek rubber-banding jitter with 500ms target hold guard and dynamic CPU throttling (polling active only when controls visible).
+- **Screen Orientation Lock & Dynamic Density Layout**:
+  - Added top-bar toggle for Landscape, Portrait, and Full Sensor Auto-Rotate modes.
+  - Wrapped action controls in `HorizontalScrollView` and scaled touch targets (40dp with 8dp padding) to guarantee zero layout overflow or title truncation across compact screens down to `sw360dp`.
+- **Video Thumbnail Extraction with In-Memory LRU Cache**:
+  - Implemented `ThumbnailLoader` utilizing 1/8 heap `LruCache` and Android Q+ `ContentResolver.loadThumbnail` with native `ParcelFileDescriptor` fallback.
+  - Restructured `item_video_file.xml` with 72x48dp rounded Material card view, isolated to local storage to preserve sub-millisecond SMB folder scanning speeds.
+
+### v1.2.24
 - **Security & Vulnerability Hardening**:
   - **Audio Capture Protection**: Restricted `AudioAttributes` capture policy from `ALLOW_CAPTURE_BY_ALL` to `ALLOW_CAPTURE_BY_SYSTEM`, preventing untrusted third-party apps from recording private video audio streams.
   - **Least-Privilege SAF Permissions**: `MainActivity` now requests only `FLAG_GRANT_READ_URI_PERMISSION` (dropping unnecessary `WRITE` permission and preventing `SecurityException` on read-only SD cards/OTG drives), releases persistable URI permissions upon folder removal, and scopes `READ_EXTERNAL_STORAGE` to `maxSdkVersion="32"`.
